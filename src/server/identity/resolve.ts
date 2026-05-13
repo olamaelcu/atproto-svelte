@@ -1,4 +1,4 @@
-import { dns } from 'dns';
+import { resolveTxt } from 'dns';
 import { fetchDidDocument, extractSigningKey, extractHandleFromAlsoKnownAs, type PlcDidDocument } from './plc.js';
 import type { Identity } from '../../types/index.js';
 
@@ -24,7 +24,7 @@ export async function resolveHandle(handle: string): Promise<Identity> {
 
 async function resolveTxtRecord(domain: string): Promise<string | null> {
   return new Promise((resolve) => {
-    dns.resolveTxt(`_atproto.${domain}`, (err, records) => {
+    resolveTxt(`_atproto.${domain}`, (err, records) => {
       if (err || !records) {
         resolve(null);
         return;

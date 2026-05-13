@@ -1,5 +1,5 @@
 import { createQuery } from '@tanstack/svelte-query';
-import type { Profile } from '../../types/index.js';
+import type { Profile } from '../types/index.js';
 import type { Agent } from '@atproto/api';
 
 export function createProfileQuery(did: string, agent?: Agent) {
