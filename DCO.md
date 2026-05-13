@@ -2,7 +2,7 @@ Developer Certificate of Origin (DCO)
 
 Version 1.1
 
-Copyright (C) 2024 The atproto-svelte contributors
+Copyright (C) 2026 Olamaelcu LLC
 
 For making a contribution to this project, I hereby agree to the following terms:
 

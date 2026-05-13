@@ -1,0 +1,45 @@
+amends "package://github.com/jdx/hk/releases/download/v1.45.0/hk@1.45.0#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v1.45.0/hk@1.45.0#/Builtins.pkl"
+
+local linters = new Mapping<String, Step> {
+  ["oxlint"] = Builtins.oxlint
+
+  ["oxfmt"] = (Builtins.oxfmt) {
+    check_list_files = "oxfmt --check {{files}}"
+  }
+
+  ["tsc"] {
+    glob = List("**/*.ts", "**/*.tsx")
+    check = "tsc --noEmit"
+    batch = false
+  }
+}
+
+hooks {
+  ["pre-commit"] {
+    fix = true
+    stash = "git"
+    steps {
+      ["oxfmt"] = linters["oxfmt"]
+      ["oxlint"] = linters["oxlint"]
+      ["tsc"] = linters["tsc"]
+      ["test"] {
+        check = "yarn test"
+        exclusive = true
+      }
+    }
+  }
+
+  ["pre-push"] {
+    steps = linters
+  }
+
+  ["check"] {
+    steps = linters
+  }
+
+  ["fix"] {
+    fix = true
+    steps = linters
+  }
+}

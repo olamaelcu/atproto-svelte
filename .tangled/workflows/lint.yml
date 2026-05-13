@@ -1,8 +1,8 @@
 when:
   - event: ["push"]
-    branch: ["main", "develop"]
+    branch: ["main", "next"]
   - event: ["pull_request"]
-    branch: ["main"]
+    branch: ["next"]
 
 engine: "nixery"
 

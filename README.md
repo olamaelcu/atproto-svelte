@@ -1,24 +1,28 @@
 # @olamaelcu/atproto-svelte
 
-ATProto OAuth client and identity resolution for SvelteKit with Tanstack Query caching.
+An opinionated approach to [ATProto OAuth][1] client and identity resolution for
+[SvelteKit][] with [Tanstack Query][] caching.
 
 ## Features
 
-- **OAuth 2.1 with PKCE and DPoP** - Full ATProto OAuth flow via `@atproto/oauth-client-node`
+- **[OAuth 2.1][] with [PKCE][] and [DPoP][]** - Full ATProto OAuth flow via `@atproto/oauth-client-node`
 - **Identity resolution** - Handle → DID via DNS TXT or well-known endpoint, DID document fetching from PLC directory
 - **Bidirectional verification** - Verify handles against DID documents
 - **Tanstack Query caching** - Stale-while-revalidate with configurable TTLs
-- **Storage interfaces** - Consumers implement for their own database (no ORM shipped)
+- **Storage interfaces** - Consumers implement for [their own database (no ORM shipped)](#storage-interfaces)
 
 ## Installation
 
 ```bash
 npm install @olamaelcu/atproto-svelte
+yarn add @olamaelcu/atproto-svelte
 ```
 
 Peer dependencies (must be installed separately):
+
 ```bash
 npm install @tanstack/svelte-query @sveltejs/kit
+yarn install @tanstack/svelte-query @sveltejs/kit
 ```
 
 ## Quick Start
@@ -53,17 +57,20 @@ const sessionManager = createSessionManager({
 ### Client-side (Identity Queries)
 
 ```typescript
-import { createIdentityQuery, identityClient } from '@olamaelcu/atproto-svelte/client';
-import { QueryClientProvider } from '@tanstack/svelte-query';
+import {
+  createIdentityQuery,
+  identityClient,
+} from "@olamaelcu/atproto-svelte/client";
+import { QueryClientProvider } from "@tanstack/svelte-query";
 
 function App() {
   return {
     QueryClientProvider,
     props: { client: identityClient, children: {} },
     setup() {
-      const identity = createIdentityQuery('user.bsky.social');
+      const identity = createIdentityQuery("beats.olamaelcu.net");
       // identity.data?.did, identity.data?.handle, identity.data?.pdsUrl, identity.data?.isVerified
-    }
+    },
   };
 }
 ```
@@ -74,18 +81,18 @@ Handles are resolved via DNS TXT (`_atproto.{domain}`) with fallback to HTTPS (`
 
 Tanstack Query caching with stale-while-revalidate:
 
-| Query | Key | staleTime | gcTime |
-|-------|-----|-----------|--------|
-| Handle→DID | `['identity', 'handle', handle]` | 10 min | 60 min |
-| DID doc | `['identity', 'did', did]` | 15 min | 2 hrs |
-| Profile | `['identity', 'profile', did]` | 5 min | 30 min |
+| Query      | Key                              | staleTime | gcTime |
+| ---------- | -------------------------------- | --------- | ------ |
+| Handle→DID | `['identity', 'handle', handle]` | 10 min    | 60 min |
+| DID doc    | `['identity', 'did', did]`       | 15 min    | 2 hrs  |
+| Profile    | `['identity', 'profile', did]`   | 5 min     | 30 min |
 
 ## SvelteKit Integration
 
 In `hooks.server.ts`:
 
 ```typescript
-import { sessionManager } from '$lib/server/session';
+import { sessionManager } from "$lib/server/session";
 
 export const handle = async ({ event, resolve }) => {
   const session = await sessionManager.validateSession(event);
@@ -123,3 +130,5 @@ interface UserSessionStore {
 ## License
 
 MPL-2.0
+
+[1]: https://atproto.com/specs/oauth

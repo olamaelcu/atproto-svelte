@@ -4,38 +4,64 @@ Thanks for your interest in contributing.
 
 ## Development Environment
 
-This project uses [mise](https://mise.jdx.dev) to pin tool versions. Install mise and run:
+This project uses [mise](https://mise.jdx.dev) to pin tool versions and [hk](https://hk.jdx.dev) for git hooks.
 
 ```bash
 mise install
 ```
 
-This will install the versions specified in `mise.toml`:
+This installs versions from `mise.toml`:
+
 - Node.js 22.14.0
 - Yarn 4.14.1
-- Rust 1.85.0
 
 ## Setup
 
 ```bash
-yarn install
+mise exec -- yarn install
 ```
 
 ## Testing
 
 ```bash
-yarn test              # all tests
-yarn run test:unit      # unit tests only
-yarn run test:integration  # integration tests
-yarn run test:coverage # with coverage report
+mise exec -- yarn test              # all tests
+mise exec -- yarn run test:unit     # unit tests only
+mise exec -- yarn run test:integration  # integration tests
 ```
 
 ## Build
 
 ```bash
-yarn run build         # production build
-yarn run typecheck     # TypeScript type checking
-yarn run lint          # ESLint
+mise exec -- yarn run build    # production build
+mise exec -- yarn run typecheck   # TypeScript type checking
+mise exec -- yarn run lint    # ESLint + Oxlint
+```
+
+## Git Hooks (hk)
+
+hk runs formatting, linting, and tests on commits automatically.
+
+```bash
+hk init
+```
+
+This installs hooks via mise. Tools run through mise so versions are consistent:
+
+- `oxfmt` / `prettier` - formatting
+- `oxlint` / `eslint` - linting
+- `tsc` - type checking
+- `yarn test` - tests
+
+To check without committing:
+
+```bash
+hk check
+```
+
+To auto-fix:
+
+```bash
+hk fix
 ```
 
 ## Code Style
@@ -57,6 +83,6 @@ The library is organized as:
 
 This library ships interface-only. Consumers implement `OAuthStateStore`, `OAuthSessionStore`, and `UserSessionStore` for their own database. See README for interface definitions.
 
-##提交代码
+## Contributions
 
 All contributions must include a DCO sign-off. See `DCO.md` for details.

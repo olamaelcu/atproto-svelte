@@ -51,10 +51,14 @@
     "jose": "^5.0.0"
   },
   "devDependencies": {
+    "@atproto/jwk": "^0.6.0",
+    "@atproto/jwk-jose": "^0.1.11",
+    "@atproto/oauth-client": "^0.6.1",
     "@sveltejs/adapter-node": "^5.0.0",
     "@sveltejs/kit": "^2.0.0",
     "@tanstack/svelte-query": "^5.0.0",
     "@testing-library/svelte": "^5.0.0",
+    "@types/node": "^25.7.0",
     "eslint": "^9.0.0",
     "msw": "^2.0.0",
     "tsup": "^8.0.0",
