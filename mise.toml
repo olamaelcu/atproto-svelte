@@ -1,0 +1,12 @@
+[tools]
+node = "22"
+yarn = "4"
+rust = "1.85"
+
+[tasks]
+test = "yarn test"
+test-unit = "yarn run test:unit"
+test-integration = "yarn run test:integration"
+build = "yarn run build"
+typecheck = "yarn run typecheck"
+lint = "yarn run lint"

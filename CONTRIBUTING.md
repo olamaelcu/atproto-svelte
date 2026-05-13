@@ -2,27 +2,34 @@
 
 Thanks for your interest in contributing.
 
-## Development Setup
+## Development Environment
+
+This project uses [mise](https://mise.jdx.dev) to pin tool versions. Install mise and run:
 
 ```bash
-npm install
+mise install
 ```
+
+This will install the versions specified in `mise.toml`:
+- Node.js 22
+- Yarn 4
+- Rust 1.85
 
 ## Testing
 
 ```bash
-npm test              # all tests
-npm run test:unit      # unit tests only
-npm run test:integration  # integration tests
-npm run test:coverage # with coverage report
+yarn test              # all tests
+yarn run test:unit      # unit tests only
+yarn run test:integration  # integration tests
+yarn run test:coverage # with coverage report
 ```
 
 ## Build
 
 ```bash
-npm run build         # production build
-npm run typecheck     # TypeScript type checking
-npm run lint          # ESLint
+yarn run build         # production build
+yarn run typecheck     # TypeScript type checking
+yarn run lint          # ESLint
 ```
 
 ## Code Style
