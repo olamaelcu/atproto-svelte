@@ -152,10 +152,7 @@ export async function createOAuthClient(
   };
 }
 
-/**
- * @deprecated Import from '../types.js' instead
- */
-export type { CreateOAuthClientOptions, CreateOAuthClientResult };
+
 
 function createStateStoreAdapter(store: OAuthStateStore): NodeSavedStateStore {
   return {
