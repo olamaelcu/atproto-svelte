@@ -31,20 +31,17 @@ export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
 
   // Validate pdsUrl is a valid URL
   if (config.pdsUrl) {
-    let url: URL;
+    let url: URL | null = null;
     try {
       url = new URL(config.pdsUrl);
     } catch {
       errors.push(`pdsUrl "${config.pdsUrl}" is not a valid URL`);
-      url = null as unknown as URL; // avoid TS error in subsequent checks
     }
 
-    if (url) {
-      if (url.protocol !== 'https:') {
-        // In production (isDev=false), https is required
-        if (!config.isDev) {
-          errors.push('pdsUrl must use https protocol in production');
-        }
+    if (url && url.protocol !== 'https:') {
+      // In production (isDev=false), https is required
+      if (!config.isDev) {
+        errors.push('pdsUrl must use https protocol in production');
       }
     }
   }

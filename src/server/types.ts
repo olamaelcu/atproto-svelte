@@ -1,5 +1,7 @@
 import { createHmac, createHash, randomBytes } from 'crypto';
 import { encodeBase32UpperCaseNoPadding, decodeBase32IgnorePadding } from '@oslojs/encoding';
+import type { Agent } from '@atproto/api';
+import type { NodeOAuthClient, OAuthSession } from '@atproto/oauth-client-node';
 
 export interface OAuthEnvironmentConfig {
   oauthDomain: string;
@@ -53,7 +55,7 @@ export interface UserSession {
 }
 
 export interface ValidatedSession {
-  atpAgent: unknown | null;
+  atpAgent: Agent | null;
   did: string | null;
   handle: string | null;
   email: string | null;
@@ -75,7 +77,7 @@ export interface CookieConfig {
 }
 
 export interface SessionManagerConfig {
-  oauthClient: unknown;
+  oauthClient: NodeOAuthClient;
   userCodec: TokenCodec;
   tokenConfig: SessionTokenConfig;
   cookieConfig: CookieConfig;
@@ -137,11 +139,9 @@ export interface CreateOAuthClientOptions {
 }
 
 export interface CreateOAuthClientResult {
-  client: unknown;
-  restore: (did: string) => Promise<unknown>;
+  client: NodeOAuthClient;
+  restore: (did: string) => Promise<OAuthSession>;
 }
 
-declare global {
-  type NodeSavedState = import('@atproto/oauth-client-node').NodeSavedState;
-  type NodeSavedSession = import('@atproto/oauth-client-node').NodeSavedSession;
-}
+export type NodeSavedState = import('@atproto/oauth-client-node').NodeSavedState;
+export type NodeSavedSession = import('@atproto/oauth-client-node').NodeSavedSession;

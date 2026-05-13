@@ -54,7 +54,7 @@ export function extractSigningKey(doc: PlcDidDocument): string | null {
   if (!vm) return null;
 
   if (vm.publicKeyJwk) {
-    const { kty, crv, x, y } = vm.publicKeyJwk;
+    const { kty, crv, x } = vm.publicKeyJwk;
     if (kty === 'OKP' && crv === 'Ed25519' && x) {
       return `did:key:z${x}`;
     }

@@ -15,6 +15,6 @@ export async function fetchProfile(actor: string, agent?: Agent): Promise<Profil
     indexedAt: response.data.indexedAt ?? null,
     followsCount: response.data.followsCount ?? 0,
     followersCount: response.data.followersCount ?? 0,
-    followingCount: response.data.followingCount ?? 0,
+    followingCount: (response.data.followingCount as number) ?? 0,
   };
 }

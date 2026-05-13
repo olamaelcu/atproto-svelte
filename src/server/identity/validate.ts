@@ -52,7 +52,7 @@ export const MAX_DID_LENGTH = 2048;
  * - TLD cannot start with a digit
  * - Case-insensitive, returns normalized lowercase
  */
-export function validateHandle(handle: string): Result<void> {
+export function validateHandle(handle: string): Result<string> {
   // Check empty input
   if (!handle || typeof handle !== 'string') {
     return { valid: false, error: 'Handle cannot be empty' };
@@ -158,7 +158,7 @@ export function validateHandle(handle: string): Result<void> {
  * - Max length 2048 characters
  * - did:key has special format (starts with did:key:z) - allow it
  */
-export function validateDid(did: string): Result<void> {
+export function validateDid(did: string): Result<string> {
   // Check empty input
   if (!did || typeof did !== 'string') {
     return { valid: false, error: 'DID cannot be empty' };
@@ -229,14 +229,14 @@ export function validateDid(did: string): Result<void> {
     }
   }
 
-  return { valid: true };
+  return { valid: true, value: did };
 }
 
 /**
  * Auto-detects whether the identifier is a handle or DID
  * and validates accordingly.
  */
-export function validateIdentity(identifier: string): Result<void> {
+export function validateIdentity(identifier: string): Result<string> {
   if (!identifier || typeof identifier !== 'string') {
     return { valid: false, error: 'Identifier cannot be empty' };
   }

@@ -24,7 +24,7 @@ export default [
       'no-throw-literal': 'error',
 
       // WARN rules
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       'no-console': 'warn',
 
       // Disable no-undef (handled by typescript)

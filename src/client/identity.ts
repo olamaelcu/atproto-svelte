@@ -1,6 +1,5 @@
 import { createQuery, QueryClient } from '@tanstack/svelte-query';
-import type { Identity } from '../../types/index.js';
-import type { Readable } from 'svelte/store';
+import type { Identity } from '../types/index.js';
 
 export const identityClient = new QueryClient({
   defaultOptions: {
@@ -14,7 +13,7 @@ export const identityClient = new QueryClient({
   }
 });
 
-export function createIdentityQuery(identifier: string): Readable<ReturnType<typeof createQuery<Identity>>> {
+export function createIdentityQuery(identifier: string): ReturnType<typeof createQuery<Identity>> {
   return createQuery({
     queryKey: ['identity', 'resolve', identifier],
     queryFn: () => resolveIdentity(identifier),
@@ -23,7 +22,7 @@ export function createIdentityQuery(identifier: string): Readable<ReturnType<typ
   });
 }
 
-export function createResolveHandleQuery(handle: string): Readable<ReturnType<typeof createQuery<Identity>>> {
+export function createResolveHandleQuery(handle: string): ReturnType<typeof createQuery<Identity>> {
   return createQuery({
     queryKey: ['identity', 'handle', handle],
     queryFn: () => resolveHandle(handle),
@@ -32,7 +31,7 @@ export function createResolveHandleQuery(handle: string): Readable<ReturnType<ty
   });
 }
 
-export function createResolveDidQuery(did: string): Readable<ReturnType<typeof createQuery<Identity>>> {
+export function createResolveDidQuery(did: string): ReturnType<typeof createQuery<Identity>> {
   return createQuery({
     queryKey: ['identity', 'did', did],
     queryFn: () => resolveDid(did),

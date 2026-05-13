@@ -32,7 +32,7 @@ export class SessionManager {
   private readonly getServiceUrl?: (did: string) => Promise<string | undefined>;
 
   constructor(config: SessionManagerConfig) {
-    this.oauthClient = config.oauthClient as NodeOAuthClient;
+    this.oauthClient = config.oauthClient;
     this.userCodec = config.userCodec;
     this.tokenConfig = config.tokenConfig;
     this.cookieConfig = config.cookieConfig;
@@ -65,8 +65,13 @@ export class SessionManager {
     }
 
     try {
-      const oAuthSession = await this.oauthClient.restore(session.did);
-      const agent = new Agent(oAuthSession as Parameters<typeof Agent>[0]);
+      // Session restoration validates the session is still valid
+      await this.oauthClient.restore(session.did);
+      const pdsUrl = serviceUrl ?? session.serviceUrl;
+      if (!pdsUrl) {
+        return { ...NULL_SESSION };
+      }
+      const agent = new Agent(pdsUrl);
       return {
         atpAgent: agent,
         did: session.did,
@@ -141,3 +146,5 @@ export class SessionManager {
     });
   }
 }
+
+export type { SessionManagerConfig };

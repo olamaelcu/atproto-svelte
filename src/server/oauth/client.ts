@@ -5,20 +5,11 @@ import type {
   OAuthEnvironmentConfig,
   OAuthStateStore,
   OAuthSessionStore,
-  ServiceUrlStore,
   CreateOAuthClientOptions,
   CreateOAuthClientResult,
   NodeSavedSession,
   NodeSavedState
 } from '../types.js';
-import { base32 } from '@oslojs/encoding';
-import { createHmac, createHash } from 'crypto';
-
-interface ServiceUrlStoreOps {
-  getServiceUrl(key: string): Promise<string | undefined>;
-  setServiceUrl(key: string, url: string): Promise<void>;
-  takeServiceUrl(key: string): Promise<string | undefined>;
-}
 
 function decodeBase64IfNeeded(input: string): string {
   const base64Regex = /^[A-Za-z0-9+/=]+$/;
@@ -57,7 +48,7 @@ async function loadJwk(config: OAuthEnvironmentConfig): Promise<Keyset | undefin
     try {
       return JSON.parse(j);
     } catch (err) {
-      throw new Error(`Failed to parse JWK: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error(`Failed to parse JWK: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
     }
   });
   // Validate JWK structure
@@ -104,11 +95,14 @@ export async function createOAuthClient(
         client_name: config.oauthClientName,
         client_id: `${rootUrl}/oauth-client-metadata.json`,
         client_uri: rootUrl,
-        redirect_uris: [`${rootUrl}/oauth/callback`],
+        redirect_uris: [`${rootUrl}/oauth/callback`] as [string, ...string[]],
         scope: config.oauthScopes,
-        grant_types: ['authorization_code', 'refresh_token'] as const,
+        grant_types: ['authorization_code', 'refresh_token'] as [
+          'authorization_code' | 'refresh_token' | 'implicit' | 'password' | 'client_credentials' | 'urn:ietf:params:oauth:grant-type:jwt-bearer' | 'urn:ietf:params:oauth:grant-type:saml2-bearer',
+          ...('authorization_code' | 'refresh_token' | 'implicit' | 'password' | 'client_credentials' | 'urn:ietf:params:oauth:grant-type:jwt-bearer' | 'urn:ietf:params:oauth:grant-type:saml2-bearer')[]
+        ],
         application_type: 'web' as const,
-        token_endpoint_auth_method: isConfidential ? 'private_key_jwt' : 'none',
+        token_endpoint_auth_method: (isConfidential ? 'private_key_jwt' : 'none') as 'none' | 'private_key_jwt' | 'client_secret_basic' | 'client_secret_jwt' | 'client_secret_post' | 'self_signed_tls_client_auth' | 'tls_client_auth',
         token_endpoint_auth_signing_alg: isConfidential ? 'ES256' : undefined,
         dpop_bound_access_tokens: true,
         jwks_uri: isConfidential ? `${rootUrl}/.well-known/jwks.json` : undefined,
@@ -118,9 +112,9 @@ export async function createOAuthClient(
 
   const oauthClient = new NodeOAuthClient({
     stateStore: createStateStoreAdapter(options.stateStore),
-    sessionStore: createSessionStoreAdapter(options.sessionStore, options.serviceUrlStore),
+    sessionStore: createSessionStoreAdapter(options.sessionStore),
     clientMetadata,
-    keyset: keys
+    keyset: keys as ConstructorParameters<typeof NodeOAuthClient>[0]['keyset']
   });
 
   return {
@@ -130,6 +124,8 @@ export async function createOAuthClient(
     }
   };
 }
+
+export type { CreateOAuthClientOptions, CreateOAuthClientResult };
 
 function createStateStoreAdapter(store: OAuthStateStore): NodeSavedStateStore {
   return {
@@ -149,17 +145,8 @@ function createStateStoreAdapter(store: OAuthStateStore): NodeSavedStateStore {
 }
 
 function createSessionStoreAdapter(
-  store: OAuthSessionStore,
-  serviceUrlStore?: ServiceUrlStore
+  store: OAuthSessionStore
 ): NodeSavedSessionStore {
-  const serviceUrlOps: ServiceUrlStoreOps | undefined = serviceUrlStore
-    ? {
-        getServiceUrl: (key) => serviceUrlStore.getServiceUrl(key),
-        setServiceUrl: (key, url) => serviceUrlStore.setServiceUrl(key, url),
-        takeServiceUrl: (key) => serviceUrlStore.takeServiceUrl(key)
-      }
-    : undefined;
-
   return {
     async get(key: string): Promise<NodeSavedSession | undefined> {
       return store.get(key);
