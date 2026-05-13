@@ -1,15 +1,12 @@
 # @olamaelcu/atproto-svelte
 
-An opinionated approach to [ATProto OAuth][1] client and identity resolution for
-[SvelteKit][] with [Tanstack Query][] caching.
+This library wraps ATProto OAuth functionality and identity resolution for use in SvelteKit applications. It handles the OAuth flow and provides cached queries for looking up handles, DIDs, and profiles through Tanstack Query.
 
 ## Features
 
-- **[OAuth 2.1][] with [PKCE][] and [DPoP][]** - Full ATProto OAuth flow via `@atproto/oauth-client-node`
-- **Identity resolution** - Handle → DID via DNS TXT or well-known endpoint, DID document fetching from PLC directory
-- **Bidirectional verification** - Verify handles against DID documents
-- **Tanstack Query caching** - Stale-while-revalidate with configurable TTLs
-- **Storage interfaces** - Consumers implement for [their own database (no ORM shipped)](#storage-interfaces)
+The package supports OAuth 2.1 with PKCE and DPoP through `@atproto/oauth-client-node`, giving you the full ATProto authentication flow out of the box. Identity resolution works by converting handles to DIDs via DNS TXT records or the well-known endpoint, then fetching DID documents from the PLC directory. The library also performs bidirectional verification to ensure handles match their DID documents.
+
+Tanstack Query integration provides stale-while-revalidate caching with configurable TTLs. Storage is handled through interfaces that you implement for your own database, so there's no ORM included.
 
 ## Installation
 
@@ -18,7 +15,7 @@ npm install @olamaelcu/atproto-svelte
 yarn add @olamaelcu/atproto-svelte
 ```
 
-Peer dependencies (must be installed separately):
+You'll also need to install the peer dependencies separately:
 
 ```bash
 npm install @tanstack/svelte-query @sveltejs/kit
@@ -56,40 +53,35 @@ const sessionManager = createSessionManager({
 
 ### Client-side (Identity Queries)
 
-```typescript
-import {
-  createIdentityQuery,
-  identityClient,
-} from "@olamaelcu/atproto-svelte/client";
-import { QueryClientProvider } from "@tanstack/svelte-query";
+```svelte
+<script lang="ts">
+  import { createIdentityQuery, identityClient } from "@olamaelcu/atproto-svelte/client";
+  import { QueryClientProvider } from "@tanstack/svelte-query";
 
-function App() {
-  return {
-    QueryClientProvider,
-    props: { client: identityClient, children: {} },
-    setup() {
-      const identity = createIdentityQuery("beats.olamaelcu.net");
-      // identity.data?.did, identity.data?.handle, identity.data?.pdsUrl, identity.data?.isVerified
-    },
-  };
-}
+  let { children } = $props();
+
+  const identity = createQuery(() => ({
+    queryKey: ['identity', 'handle', 'beats.olamaelcu.net'],
+    queryFn: () => identityClient.resolveHandle('beats.olamaelcu.net')
+  }));
+</script>
+
+<QueryClientProvider client={identityClient}>
+  {@render children()}
+</QueryClientProvider>
 ```
+
+Access the resolved identity data through `identity.data?.did`, `identity.data?.handle`, `identity.data?.pdsUrl`, and `identity.data?.isVerified`.
 
 ## Identity Resolution
 
-Handles are resolved via DNS TXT (`_atproto.{domain}`) with fallback to HTTPS (`/.well-known/atproto-did`). DID documents are fetched from `plc.directory/{did}`.
+Handles resolve to DIDs through a two-step process. First, the library queries for a DNS TXT record at `_atproto.{domain}`. If that fails, it falls back to fetching `/.well-known/atproto-did` over HTTPS. Once it has a DID, it fetches the DID document from `plc.directory/{did}`.
 
-Tanstack Query caching with stale-while-revalidate:
-
-| Query      | Key                              | staleTime | gcTime |
-| ---------- | -------------------------------- | --------- | ------ |
-| Handle→DID | `['identity', 'handle', handle]` | 10 min    | 60 min |
-| DID doc    | `['identity', 'did', did]`       | 15 min    | 2 hrs  |
-| Profile    | `['identity', 'profile', did]`   | 5 min     | 30 min |
+Tanstack Query caches these lookups using stale-while-revalidate semantics. Handle to DID lookups stay fresh for 10 minutes and are garbage collected after an hour. DID document lookups are fresh for 15 minutes and persist for 2 hours. Profile lookups are fresh for 5 minutes and kept for 30 minutes.
 
 ## SvelteKit Integration
 
-In `hooks.server.ts`:
+In your `hooks.server.ts` file, you can use the session manager to validate requests:
 
 ```typescript
 import { sessionManager } from "$lib/server/session";
@@ -103,29 +95,7 @@ export const handle = async ({ event, resolve }) => {
 
 ## Storage Interfaces
 
-Consumers implement these interfaces for their own database:
-
-```typescript
-interface OAuthStateStore {
-  get(key: string): Promise<Uint8Array | undefined>;
-  set(key: string, value: Uint8Array): Promise<void>;
-  del(key: string): Promise<void>;
-}
-
-interface OAuthSessionStore {
-  get(key: string): Promise<NodeSavedSession | undefined>;
-  set(key: string, session: NodeSavedSession): Promise<void>;
-  del(key: string): Promise<void>;
-}
-
-interface UserSessionStore {
-  getByTokenHash(hash: string): Promise<UserSession | undefined>;
-  create(session: UserSession): Promise<void>;
-  update(hash: string, updates: Partial<UserSession>): Promise<void>;
-  delete(hash: string): Promise<void>;
-  deleteByDid(did: string): Promise<void>;
-}
-```
+You need to implement three storage interfaces for your own database. The `OAuthStateStore` handles temporary OAuth state with get, set, and delete operations for Uint8Array values. The `OAuthSessionStore` manages persisted session data with the same operations. The `UserSessionStore` handles user sessions indexed by token hash, with methods for retrieval, creation, updates, and deletion by DID or hash.
 
 ## License
 

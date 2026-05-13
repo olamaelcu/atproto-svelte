@@ -10,10 +10,7 @@ This project uses [mise](https://mise.jdx.dev) to pin tool versions and [hk](htt
 mise install
 ```
 
-This installs versions from `mise.toml`:
-
-- Node.js 22.14.0
-- Yarn 4.14.1
+This installs Node.js 22.14.0 and Yarn 4.14.1.
 
 ## Setup
 
@@ -34,7 +31,7 @@ mise exec -- yarn run test:integration  # integration tests
 ```bash
 mise exec -- yarn run build    # production build
 mise exec -- yarn run typecheck   # TypeScript type checking
-mise exec -- yarn run lint    # ESLint + Oxlint
+mise exec -- yarn run lint    # ESLint
 ```
 
 ## Git Hooks (hk)
@@ -45,10 +42,10 @@ hk runs formatting, linting, and tests on commits automatically.
 hk init
 ```
 
-This installs hooks via mise. Tools run through mise so versions are consistent:
+Hooks run via mise so versions stay consistent:
 
-- `oxfmt` / `prettier` - formatting
-- `oxlint` / `eslint` - linting
+- `prettier` - formatting
+- `eslint` - linting
 - `tsc` - type checking
 - `yarn test` - tests
 

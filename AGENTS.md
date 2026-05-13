@@ -39,34 +39,38 @@ npm run typecheck           # TypeScript checking
 npm run lint                # ESLint
 ```
 
-## Key Patterns
+## TokenCodec
 
-### TokenCodec (HMAC-SHA256 signed tokens)
-- `encode(randomBytes(20))` → `base32.randomPart.base32.sigPart`
-- `decode()` verifies HMAC with constant-time comparison
+HMAC-SHA256 signed tokens.
+
+- `encode(randomBytes(20))` produces `base32.randomPart.base32.sigPart`
+- `decode()` verifies the HMAC using constant-time comparison
 - `hash()` returns SHA256 for session lookup
 
-### Identity Resolution Flow
-1. Handle → DNS TXT `_atproto.{domain}`
-2. Fallback → HTTPS `/.well-known/atproto-did`
-3. DID → Fetch from `https://plc.directory/{did}`
-4. Bidirectional verify via `alsoKnownAs`
+## Identity Resolution
 
-### Tanstack Query Keys
+1. Handle resolves via DNS TXT `_atproto.{domain}`
+2. If that fails, falls back to HTTPS `/.well-known/atproto-did`
+3. DID data fetched from `https://plc.directory/{did}`
+4. Bidirectional verification through `alsoKnownAs`
+
+## Tanstack Query Keys
+
 - `['identity', 'handle', handle]`
 - `['identity', 'did', did]`
 - `['identity', 'profile', did]`
 
 ## Storage Interfaces
 
-Consumers must implement:
-- `OAuthStateStore` - for OAuth authorization state
-- `OAuthSessionStore` - for OAuth sessions (contains refresh tokens)
-- `UserSessionStore` - for app-level user sessions
+Implement these interfaces:
+
+- `OAuthStateStore` - OAuth authorization state
+- `OAuthSessionStore` - OAuth sessions with refresh tokens
+- `UserSessionStore` - app-level user sessions
 
 ## Development Notes
 
-- Server-only code stays in `src/server/`
+- Server-only code lives in `src/server/`
 - Client wrappers in `src/client/` dynamically import from server
 - Tests use Vitest with MSW for HTTP mocking
 - Token security uses constant-time comparison to prevent timing attacks

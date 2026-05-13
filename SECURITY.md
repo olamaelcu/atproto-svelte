@@ -1,24 +1,14 @@
 # Security Guidelines
 
-This document outlines security practices for consuming the `@olamaelcu/atproto-svelte` library.
-
 ## Rate Limiting
 
-The library provides an in-memory token bucket rate limiter via `rateLimiter()`.
+The library includes an in-memory token bucket rate limiter via `rateLimiter()`. Apply it to external operations with these thresholds:
 
-### Consumer Responsibility
+- Handle resolution (DNS): 30 requests per minute
+- DID document fetching (PLC): 60 requests per minute
+- OAuth authorization endpoints: 10 requests per minute
 
-Apply rate limiting to external operations:
-
-| Operation | Recommended Threshold |
-|-----------|----------------------|
-| Handle resolution (DNS) | 30 requests/minute |
-| DID document fetching (PLC) | 60 requests/minute |
-| OAuth authorization endpoints | 10 requests/minute |
-
-*Thresholds based on OWASP API Security Guidelines.*
-
-### Implementation
+These thresholds follow the OWASP API Security Guidelines.
 
 ```typescript
 import { rateLimiter } from '@olamaelcu/atproto-svelte/server';
@@ -28,18 +18,12 @@ const limiter = rateLimiter({ maxTokens: 30, intervalMs: 60_000 });
 
 ## Brute Force Protection
 
-Use `FailedAttemptsTracker` to defend against credential stuffing and session enumeration.
+Use `FailedAttemptsTracker` to defend against credential stuffing and session enumeration. Lockout duration scales with failed attempts:
 
-### Lockout Scaling
-
-| Failed Attempts | Lockout Duration |
-|----------------|-----------------|
-| 3 | 15 seconds |
-| 5 | 1 minute |
-| 10 | 15 minutes |
-| 20+ | 1 hour |
-
-### Usage
+- 3 failed attempts: 15 second lockout
+- 5 failed attempts: 1 minute lockout
+- 10 failed attempts: 15 minute lockout
+- 20+ failed attempts: 1 hour lockout
 
 ```typescript
 import { FailedAttemptsTracker } from '@olamaelcu/atproto-svelte/server';
@@ -57,15 +41,11 @@ if (!tracker.record(failure)) {
 
 ## Input Validation
 
-All handles and DIDs are validated per ATProto specifications.
+Handles and DIDs are validated per ATProto specifications. The following values are rejected in production:
 
-### Rejected Values (Production)
-
-- `localhost`, `127.0.0.1`, `0.0.0.0`
-- `.local`, `.internal`, `.test` TLDs
+- localhost, 127.0.0.1, 0.0.0.0
+- .local, .internal, .test TLDs
 - Private IP ranges (RFC 1918)
-
-### Validation Functions
 
 ```typescript
 import { validateHandle, validateDid } from '@olamaelcu/atproto-svelte/server';
@@ -77,11 +57,9 @@ const handle = await validateHandle(input);
 
 ## OAuth State
 
-State management is delegated to `@atproto/oauth-client-node`, which handles CSRF protection internally.
+State management delegates to `@atproto/oauth-client-node`, which handles CSRF protection internally. Consumer requirements:
 
-### Consumer Requirements
-
-- Use a cryptographically secure session store (e.g., encrypted cookies, secure session backend)
+- Use a cryptographically secure session store (encrypted cookies or a secure session backend)
 - Never expose raw OAuth tokens to client code
 - Rotate session identifiers on privilege escalation
 
@@ -111,15 +89,7 @@ Session tokens use `crypto.getRandomValues` (CSPRNG) for generation.
 
 ## Cookie Security
 
-Configure cookie flags based on your deployment context:
-
-| Flag | Production | Development |
-|------|-------------|-------------|
-| `httpOnly` | `true` | `true` |
-| `secure` | `true` | `false` |
-| `sameSite` | `'strict'` | `'lax'` |
-
-### SvelteKit Implementation
+Configure cookie flags based on your deployment context. In production, set `httpOnly: true`, `secure: true`, and `sameSite: 'strict'`. In development, `httpOnly: true` and `sameSite: 'lax'` are still appropriate but `secure` should be false to work over HTTP.
 
 ```typescript
 // hooks.server.ts
@@ -132,25 +102,15 @@ cookieOptions: {
 
 ## Environment Configuration
 
-Use `validateEnvConfig()` to enforce production safety checks at startup.
-
-### Required Variables
+Use `validateEnvConfig()` to enforce production safety checks at startup. Required variables for production:
 
 ```bash
-# Production
 ATPROTO_CLIENT_ID=https://yourapp.com
 ATPROTO_CLIENT_SECRET=<32+ byte secret>
 ATPROTO_SESSION_SECRET=<32+ byte secret>
 ```
 
-### Validation Rules
-
-When `isDev=false`:
-- Rejects `localhost` in `ATPROTO_CLIENT_ID`
-- Requires HTTPS endpoints
-- Enforces non-empty secrets
-
-### Usage
+When `isDev=false`, the validator rejects localhost in `ATPROTO_CLIENT_ID`, requires HTTPS endpoints, and enforces non-empty secrets.
 
 ```typescript
 import { validateEnvConfig } from '@olamaelcu/atproto-svelte/server';

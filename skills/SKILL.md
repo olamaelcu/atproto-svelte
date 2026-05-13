@@ -81,20 +81,17 @@ interface OAuthSessionStore {
 
 Identity resolution uses Tanstack Query with stale-while-revalidate caching:
 
-```typescript
-import { createIdentityQuery, identityClient } from '@olamaelcu/atproto-svelte/client';
-import { QueryClientProvider } from '@tanstack/svelte-query';
+```svelte
+<script lang="ts">
+import { createIdentityQuery } from '@olamaelcu/atproto-svelte/client';
 
-function App() {
-  return {
-    QueryClientProvider,
-    props: { children: {} },
-    setup() {
-      const query = createIdentityQuery('user.bsky.social');
-      // query.data?.did, query.data?.handle, query.data?.pdsUrl, query.data?.isVerified
-    }
-  };
-}
+const identityQuery = createIdentityQuery('user.bsky.social');
+const identity = $derived($identityQuery.data);
+</script>
+
+<p>DID: {identity?.did}</p>
+<p>Handle: {identity?.handle}</p>
+<p>Verified: {identity?.isVerified ? 'Yes' : 'No'}</p>
 ```
 
 Query keys and stale times:
