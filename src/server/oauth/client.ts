@@ -29,12 +29,51 @@ function decodeBase64IfNeeded(input: string): string {
   return input;
 }
 
+function getDevUrl(config: OAuthEnvironmentConfig): string {
+  const host = config.devHost ?? '127.0.0.1';
+  const port = config.devPort ?? 5180;
+  return `http://${host}:${port}`;
+}
+
+function validateNonDevUrls(config: OAuthEnvironmentConfig, rootUrl: string, devCallbackUrl: string): void {
+  if (!config.isDev) {
+    const localhostPattern = /localhost|127\.0\.0\.1/i;
+    if (localhostPattern.test(rootUrl) || localhostPattern.test(devCallbackUrl)) {
+      throw new Error(
+        'Invalid configuration: production mode cannot use localhost URLs. ' +
+        'Set isDev to true or use a proper domain name.'
+      );
+    }
+  }
+}
+
 async function loadJwk(config: OAuthEnvironmentConfig): Promise<Keyset | undefined> {
   const raw = config.oauthJwk;
   if (!raw) return undefined;
   const json = Array.isArray(raw) ? raw : [raw];
   const decoded = json.map((jwk) => decodeBase64IfNeeded(jwk));
-  const parsed = decoded.map((j) => (typeof j === 'string' ? JSON.parse(j) : j));
+  const parsed = decoded.map((j) => {
+    if (typeof j !== 'string') return j;
+    try {
+      return JSON.parse(j);
+    } catch (err) {
+      throw new Error(`Failed to parse JWK: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  });
+  // Validate JWK structure
+  for (const jwk of parsed) {
+    if (typeof jwk !== 'object' || jwk === null) {
+      throw new Error('JWK must be a plain object');
+    }
+    if (!jwk.kty) {
+      throw new Error('JWK missing required "kty" property');
+    }
+    const hasCurve = jwk.crv !== undefined;
+    const hasRsaParams = jwk.n !== undefined && jwk.e !== undefined;
+    if (!hasCurve && !hasRsaParams) {
+      throw new Error('JWK must have either "crv" (for EC/symmetric) or "n"/"e" (for RSA)');
+    }
+  }
   const keys = await Promise.all(parsed.map((jwk) => JoseKey.fromJWK(jwk)));
   for (const key of keys) {
     Object.defineProperty(key.jwk, 'use', { value: 'sig', enumerable: true, writable: false });
@@ -49,8 +88,10 @@ export async function createOAuthClient(
   const isConfidential = config.oauthJwk !== undefined;
   const keys = isConfidential ? await loadJwk(config) : undefined;
 
-  const rootUrl = config.isDev ? `http://127.0.0.1:5180` : `https://${config.oauthDomain}`;
-  const devCallbackUrl = 'http://127.0.0.1:5180';
+  const devCallbackUrl = getDevUrl(config);
+  const rootUrl = config.isDev ? devCallbackUrl : `https://${config.oauthDomain}`;
+
+  validateNonDevUrls(config, rootUrl, devCallbackUrl);
 
   const clientMetadata = config.isDev
     ? atprotoLoopbackClientMetadata(

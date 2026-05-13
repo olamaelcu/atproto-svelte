@@ -10,6 +10,8 @@ export interface OAuthEnvironmentConfig {
   oauthPolicyUri?: string;
   pdsUrl: string;
   isDev: boolean;
+  devHost?: string;
+  devPort?: number;
   fallbackDid?: string;
   fallbackDomain?: string;
 }
