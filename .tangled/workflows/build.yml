@@ -1,0 +1,21 @@
+when:
+  - event: ["push", "manual"]
+    branch: ["main", "develop"]
+
+engine: "nixery"
+
+dependencies:
+  nixpkgs:
+    - nodejs
+    - yarn
+
+environment:
+  NODE_ENV: "production"
+
+steps:
+  - name: "Install dependencies"
+    command: "yarn install"
+  - name: "Build package"
+    command: "yarn run build"
+  - name: "Run typecheck"
+    command: "yarn run typecheck"

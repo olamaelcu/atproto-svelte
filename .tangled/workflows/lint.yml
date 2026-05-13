@@ -1,0 +1,18 @@
+when:
+  - event: ["push"]
+    branch: ["main", "develop"]
+  - event: ["pull_request"]
+    branch: ["main"]
+
+engine: "nixery"
+
+dependencies:
+  nixpkgs:
+    - nodejs
+    - yarn
+
+steps:
+  - name: "Install dependencies"
+    command: "yarn install"
+  - name: "Run linter"
+    command: "yarn run lint"

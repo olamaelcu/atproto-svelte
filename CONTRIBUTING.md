@@ -11,9 +11,15 @@ mise install
 ```
 
 This will install the versions specified in `mise.toml`:
-- Node.js 22
-- Yarn 4
-- Rust 1.85
+- Node.js 22.14.0
+- Yarn 4.14.1
+- Rust 1.85.0
+
+## Setup
+
+```bash
+yarn install
+```
 
 ## Testing
 

@@ -1,0 +1,23 @@
+when:
+  - event: ["push", "manual"]
+    branch: ["main", "develop"]
+  - event: ["pull_request"]
+    branch: ["main"]
+
+engine: "nixery"
+
+dependencies:
+  nixpkgs:
+    - nodejs
+    - yarn
+
+environment:
+  NODE_ENV: "test"
+
+steps:
+  - name: "Install dependencies"
+    command: "yarn install"
+  - name: "Run unit tests"
+    command: "yarn run test:unit"
+  - name: "Run integration tests"
+    command: "yarn run test:integration"
