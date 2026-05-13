@@ -11,6 +11,13 @@ import type {
   NodeSavedState
 } from '../types.js';
 
+/**
+ * @file OAuth client creation and configuration.
+ *
+ * This module handles the creation of OAuth clients for ATProto authentication,
+ * including JWK loading, URL validation, and client metadata configuration.
+ */
+
 function decodeBase64IfNeeded(input: string): string {
   const base64Regex = /^[A-Za-z0-9+/=]+$/;
   if (base64Regex.test(input)) {
@@ -72,6 +79,26 @@ async function loadJwk(config: OAuthEnvironmentConfig): Promise<Keyset | undefin
   return new Keyset(keys, ['ES256']);
 }
 
+/**
+ * Create and configure an OAuth client for ATProto authentication.
+ *
+ * @param config - OAuth environment configuration
+ * @param options - Storage options for state and sessions
+ * @returns The configured OAuth client and a restore function
+ *
+ * @remarks
+ * This function sets up an OAuth client that supports both public (no client auth)
+ * and confidential (JWK-based) modes. In development mode, it uses localhost
+ * callbacks; in production, it uses proper HTTPS URLs.
+ *
+ * @example
+ * ```ts
+ * const { client, restore } = await createOAuthClient(config, {
+ *   stateStore: redisStateStore,
+ *   sessionStore: redisSessionStore
+ * });
+ * ```
+ */
 export async function createOAuthClient(
   config: OAuthEnvironmentConfig,
   options: CreateOAuthClientOptions
@@ -125,6 +152,9 @@ export async function createOAuthClient(
   };
 }
 
+/**
+ * @deprecated Import from '../types.js' instead
+ */
 export type { CreateOAuthClientOptions, CreateOAuthClientResult };
 
 function createStateStoreAdapter(store: OAuthStateStore): NodeSavedStateStore {
