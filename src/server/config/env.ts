@@ -97,6 +97,33 @@ export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
 /**
  * Example implementation showing how consumers should load config from environment.
  * Replace this with your own implementation that fits your application's config loading pattern.
+ *
+ * @example
+ * Environment variables:
+ * ```bash
+ * # Required
+ * OAUTH_DOMAIN=bsky.app
+ * OAUTH_CLIENT_NAME=My App
+ * OAUTH_SCOPES=atproto email
+ * PDS_URL=https://bsky.social
+ *
+ * # Optional - Confidential client authentication
+ * OAUTH_JWK=base64_encoded_jwk
+ *
+ * # Optional - Legal URIs
+ * OAUTH_TOS_URI=https://example.com/tos
+ * OAUTH_POLICY_URI=https://example.com/privacy
+ *
+ * # Optional - Development settings
+ * FALLBACK_DID=did:plc:abc123
+ * FALLBACK_DOMAIN=example.com
+ * DEV_HOST=127.0.0.1
+ * DEV_PORT=5180
+ *
+ * # Optional - Custom service URLs
+ * PLC_DIRECTORY_URL=https://plc.directory
+ * PUBLIC_API_URL=https://public.api.bsky.app
+ * ```
  */
 export function loadEnvConfig(): OAuthEnvironmentConfig {
   const config: OAuthEnvironmentConfig = {
@@ -128,6 +155,12 @@ export function loadEnvConfig(): OAuthEnvironmentConfig {
   }
   if (process.env.DEV_PORT) {
     config.devPort = parseInt(process.env.DEV_PORT, 10);
+  }
+  if (process.env.PLC_DIRECTORY_URL) {
+    config.plcDirectoryUrl = process.env.PLC_DIRECTORY_URL;
+  }
+  if (process.env.PUBLIC_API_URL) {
+    config.publicApiUrl = process.env.PUBLIC_API_URL;
   }
 
   validateEnvConfig(config);

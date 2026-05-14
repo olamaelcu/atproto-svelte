@@ -41,6 +41,7 @@ export const identityClient = new QueryClient({
  * Create a query for resolving any identifier (handle or DID).
  *
  * @param identifier - Either a handle (e.g., 'alice.bsky.social') or DID
+ * @param plcDirectoryUrl - Optional PLC directory URL (defaults to 'https://plc.directory')
  * @returns A Tanstack Query for the resolved Identity
  *
  * @remarks
@@ -53,10 +54,10 @@ export const identityClient = new QueryClient({
  * const { data } = query;
  * ```
  */
-export function createIdentityQuery(identifier: string): ReturnType<typeof createQuery<Identity>> {
+export function createIdentityQuery(identifier: string, plcDirectoryUrl?: string): ReturnType<typeof createQuery<Identity>> {
   return createQuery({
     queryKey: ['identity', 'resolve', identifier],
-    queryFn: () => resolveIdentity(identifier),
+    queryFn: () => resolveIdentity(identifier, plcDirectoryUrl),
     staleTime: IDENTITY_STALE_TIME_MS,
     gcTime: IDENTITY_GC_TIME_MS
   });
@@ -66,6 +67,7 @@ export function createIdentityQuery(identifier: string): ReturnType<typeof creat
  * Create a query for resolving a handle to an Identity.
  *
  * @param handle - The handle to resolve (e.g., 'alice.bsky.social')
+ * @param plcDirectoryUrl - Optional PLC directory URL (defaults to 'https://plc.directory')
  * @returns A Tanstack Query for the resolved Identity
  *
  * @remarks
@@ -78,10 +80,10 @@ export function createIdentityQuery(identifier: string): ReturnType<typeof creat
  * const { data, isLoading } = query;
  * ```
  */
-export function createResolveHandleQuery(handle: string): ReturnType<typeof createQuery<Identity>> {
+export function createResolveHandleQuery(handle: string, plcDirectoryUrl?: string): ReturnType<typeof createQuery<Identity>> {
   return createQuery({
     queryKey: ['identity', 'handle', handle],
-    queryFn: () => resolveHandle(handle),
+    queryFn: () => resolveHandle(handle, plcDirectoryUrl),
     staleTime: IDENTITY_STALE_TIME_MS,
     gcTime: IDENTITY_GC_TIME_MS
   });
@@ -91,6 +93,7 @@ export function createResolveHandleQuery(handle: string): ReturnType<typeof crea
  * Create a query for resolving a DID to an Identity.
  *
  * @param did - The DID to resolve (e.g., 'did:plc:abc123')
+ * @param plcDirectoryUrl - Optional PLC directory URL (defaults to 'https://plc.directory')
  * @returns A Tanstack Query for the resolved Identity
  *
  * @remarks
@@ -103,28 +106,28 @@ export function createResolveHandleQuery(handle: string): ReturnType<typeof crea
  * const { data } = query;
  * ```
  */
-export function createResolveDidQuery(did: string): ReturnType<typeof createQuery<Identity>> {
+export function createResolveDidQuery(did: string, plcDirectoryUrl?: string): ReturnType<typeof createQuery<Identity>> {
   return createQuery({
     queryKey: ['identity', 'did', did],
-    queryFn: () => resolveDid(did),
+    queryFn: () => resolveDid(did, plcDirectoryUrl),
     staleTime: DID_STALE_TIME_MS,
     gcTime: DID_GC_TIME_MS
   });
 }
 
-async function resolveHandle(handle: string): Promise<Identity> {
+async function resolveHandle(handle: string, plcDirectoryUrl?: string): Promise<Identity> {
   const { resolveHandle: fn } = await import('../server/index.js');
-  return fn(handle);
+  return fn(handle, plcDirectoryUrl);
 }
 
-async function resolveDid(did: string): Promise<Identity> {
+async function resolveDid(did: string, plcDirectoryUrl?: string): Promise<Identity> {
   const { resolveDid: fn } = await import('../server/index.js');
-  return fn(did);
+  return fn(did, plcDirectoryUrl);
 }
 
-async function resolveIdentity(identifier: string): Promise<Identity> {
+async function resolveIdentity(identifier: string, plcDirectoryUrl?: string): Promise<Identity> {
   const { resolveIdentity: fn } = await import('../server/index.js');
-  return fn(identifier);
+  return fn(identifier, plcDirectoryUrl);
 }
 
 export { identityClient as default };

@@ -6,8 +6,9 @@ import { PROFILE_STALE_TIME_MS, PROFILE_GC_TIME_MS } from '../server/constants.j
 /**
  * Create a query for fetching a user's profile.
  *
- * @param did - The user's DID
+ * @param did - The user's DID or handle
  * @param agent - Optional ATProto Agent for authenticated requests
+ * @param publicApiUrl - Optional public API URL (defaults to 'https://public.api.bsky.app')
  * @returns A Tanstack Query for the Profile
  *
  * @remarks
@@ -21,16 +22,16 @@ import { PROFILE_STALE_TIME_MS, PROFILE_GC_TIME_MS } from '../server/constants.j
  * const { data, isLoading } = query;
  * ```
  */
-export function createProfileQuery(did: string, agent?: Agent) {
+export function createProfileQuery(did: string, agent?: Agent, publicApiUrl?: string) {
   return createQuery({
     queryKey: ['identity', 'profile', did],
-    queryFn: () => fetchProfile(did, agent),
+    queryFn: () => fetchProfile(did, agent, publicApiUrl),
     staleTime: PROFILE_STALE_TIME_MS,
     gcTime: PROFILE_GC_TIME_MS
   });
 }
 
-async function fetchProfile(did: string, agent?: Agent): Promise<Profile> {
+async function fetchProfile(did: string, agent?: Agent, publicApiUrl?: string): Promise<Profile> {
   const { fetchProfile: fn } = await import('../server/profile.js');
-  return fn(did, agent);
+  return fn(did, agent, publicApiUrl);
 }

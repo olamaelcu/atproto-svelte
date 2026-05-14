@@ -51,6 +51,10 @@ export interface OAuthEnvironmentConfig {
   fallbackDid?: string;
   /** Fallback domain for development fallback resolution. */
   fallbackDomain?: string;
+  /** URL of the PLC directory for DID document lookups. Defaults to 'https://plc.directory'. */
+  plcDirectoryUrl?: string;
+  /** Default public API URL for unauthenticated profile fetching. Defaults to 'https://public.api.bsky.app'. */
+  publicApiUrl?: string;
 }
 
 /**

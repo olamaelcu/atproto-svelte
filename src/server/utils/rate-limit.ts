@@ -1,6 +1,11 @@
 /**
  * In-memory token bucket rate limiter implementing OWASP best practices.
  * Thread-safe implementation using a simple mutex pattern.
+ *
+ * @remarks
+ * This implementation uses in-memory storage and is not suitable for
+ * multi-server or distributed environments. In production, use a
+ * distributed rate limiter like Redis with atomic operations.
  */
 export class TokenBucketRateLimiter {
 	private readonly maxRequests: number;
@@ -132,6 +137,12 @@ export class TokenBucketRateLimiter {
 /**
  * Tracks failed authentication attempts to prevent brute force attacks.
  * Simple in-memory implementation with automatic lockout detection.
+ *
+ * @remarks
+ * This implementation uses in-memory storage and is not suitable for
+ * multi-server or distributed environments. In production, use a
+ * distributed tracker like Redis with atomic operations and proper
+ * expiration handling.
  */
 interface AttemptRecord {
 	count: number;

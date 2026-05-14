@@ -6,11 +6,16 @@
  */
 
 /**
- * Result type for validation operations
+ * Result type for validation operations.
+ *
+ * @template T - The type of the validated value (e.g., string for handles/DIDs)
  */
 export interface Result<T = void> {
+  /** Whether the validation passed */
   valid: boolean;
+  /** Error message if validation failed */
   error?: string;
+  /** The validated and normalized value if validation passed */
   value?: T;
 }
 
@@ -43,6 +48,10 @@ export const MAX_DID_LENGTH = 2048;
 /**
  * Validates a handle per ATProto RFC.
  *
+ * @param handle - The handle string to validate
+ * @returns Result with validated handle (normalized to lowercase) or error
+ *
+ * @remarks
  * Requirements:
  * - Max length 253 characters
  * - RFC-compliant domain structure with dots
@@ -51,6 +60,8 @@ export const MAX_DID_LENGTH = 2048;
  * - Segments cannot start or end with hyphens
  * - TLD cannot start with a digit
  * - Case-insensitive, returns normalized lowercase
+ *
+ * @returns The validated handle string (normalized to lowercase) if valid
  */
 export function validateHandle(handle: string): Result<string> {
   // Check empty input
@@ -151,12 +162,18 @@ export function validateHandle(handle: string): Result<string> {
 /**
  * Validates a DID per ATProto spec.
  *
+ * @param did - The DID string to validate
+ * @returns Result with validated DID or error
+ *
+ * @remarks
  * Requirements:
  * - Must match pattern ^did:[a-z]+:[a-zA-Z0-9._:%-]*[a-zA-Z0-9._-]$
  * - Supported methods: plc, web, key
  * - did:web should reject localhost in production
  * - Max length 2048 characters
  * - did:key has special format (starts with did:key:z) - allow it
+ *
+ * @returns The validated DID string if valid
  */
 export function validateDid(did: string): Result<string> {
   // Check empty input
@@ -235,6 +252,15 @@ export function validateDid(did: string): Result<string> {
 /**
  * Auto-detects whether the identifier is a handle or DID
  * and validates accordingly.
+ *
+ * @param identifier - The identifier to validate (handle or DID)
+ * @returns Result with validated identifier or error
+ *
+ * @remarks
+ * Automatically detects the identifier type by checking for the 'did:' prefix.
+ * If present, validates as DID. Otherwise, validates as handle.
+ *
+ * @returns The validated identifier string if valid
  */
 export function validateIdentity(identifier: string): Result<string> {
   if (!identifier || typeof identifier !== 'string') {

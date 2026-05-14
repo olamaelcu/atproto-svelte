@@ -1,11 +1,13 @@
 import { resolveTxt } from 'dns';
 import { fetchDidDocument, extractSigningKey, extractHandleFromAlsoKnownAs, type PlcDidDocument } from './plc.js';
 import type { Identity } from '../../types/index.js';
+import { DEFAULT_PLC_DIRECTORY_URL } from '../constants.js';
 
 /**
  * Resolve a handle to an Identity.
  *
  * @param handle - The handle to resolve (e.g., 'alice.bsky.social' or 'did:plc:abc123')
+ * @param plcDirectoryUrl - Optional PLC directory URL (defaults to 'https://plc.directory')
  * @returns The resolved Identity including DID, PDS URL, and signing key
  * @throws Error if resolution fails via both DNS TXT and .well-known methods
  *
@@ -21,7 +23,7 @@ import type { Identity } from '../../types/index.js';
  * console.log(identity.did); // did:plc:abc123...
  * ```
  */
-export async function resolveHandle(handle: string): Promise<Identity> {
+export async function resolveHandle(handle: string, plcDirectoryUrl?: string): Promise<Identity> {
   const domain = handle.startsWith('did:') ? null : handle;
 
   let did: string | null = null;
@@ -38,7 +40,7 @@ export async function resolveHandle(handle: string): Promise<Identity> {
     throw new Error(`Failed to resolve handle: ${handle}`);
   }
 
-  return resolveDid(did);
+  return resolveDid(did, plcDirectoryUrl);
 }
 
 async function resolveTxtRecord(domain: string): Promise<string | null> {
@@ -96,10 +98,11 @@ async function resolveWellKnown(handle: string): Promise<string | null> {
  * Resolve a DID to an Identity using the PLC directory.
  *
  * @param did - The DID to resolve (e.g., 'did:plc:abc123')
+ * @param plcDirectoryUrl - Optional PLC directory URL (defaults to 'https://plc.directory')
  * @returns The resolved Identity with PDS URL, signing key, and handle
  *
  * @remarks
- * Fetches the DID document from plc.directory and extracts:
+ * Fetches the DID document from the PLC directory and extracts:
  * - PDS URL from service endpoints
  * - Signing key from verification methods
  * - Handle from alsoKnownAs (if set)
@@ -110,8 +113,8 @@ async function resolveWellKnown(handle: string): Promise<string | null> {
  * console.log(identity.pdsUrl, identity.signingKey);
  * ```
  */
-export async function resolveDid(did: string): Promise<Identity> {
-  const doc = await fetchDidDocument(did);
+export async function resolveDid(did: string, plcDirectoryUrl?: string): Promise<Identity> {
+  const doc = await fetchDidDocument(did, plcDirectoryUrl ?? DEFAULT_PLC_DIRECTORY_URL);
 
   const pdsUrl = extractPdsUrl(doc);
   const signingKey = extractSigningKey(doc);
@@ -137,6 +140,7 @@ function extractPdsUrl(doc: PlcDidDocument): string | null {
  * Resolve any identifier (handle or DID) to an Identity.
  *
  * @param identifier - Either a handle (e.g., 'alice.bsky.social') or DID
+ * @param plcDirectoryUrl - Optional PLC directory URL (defaults to 'https://plc.directory')
  * @returns The resolved Identity
  *
  * @remarks
@@ -150,11 +154,11 @@ function extractPdsUrl(doc: PlcDidDocument): string | null {
  * const identity = await resolveIdentity('did:plc:abc123');
  * ```
  */
-export async function resolveIdentity(identifier: string): Promise<Identity> {
+export async function resolveIdentity(identifier: string, plcDirectoryUrl?: string): Promise<Identity> {
   if (identifier.startsWith('did:')) {
-    return resolveDid(identifier);
+    return resolveDid(identifier, plcDirectoryUrl ?? DEFAULT_PLC_DIRECTORY_URL);
   }
-  return resolveHandle(identifier);
+  return resolveHandle(identifier, plcDirectoryUrl ?? DEFAULT_PLC_DIRECTORY_URL);
 }
 
 /**
@@ -162,6 +166,7 @@ export async function resolveIdentity(identifier: string): Promise<Identity> {
  *
  * @param handle - The handle to verify
  * @param did - The DID to verify against
+ * @param plcDirectoryUrl - Optional PLC directory URL (defaults to 'https://plc.directory')
  * @returns True if the handle is verified by the DID and vice versa
  *
  * @remarks
@@ -180,14 +185,14 @@ export async function resolveIdentity(identifier: string): Promise<Identity> {
  * }
  * ```
  */
-export async function verifyBidirectional(handle: string, did: string): Promise<boolean> {
+export async function verifyBidirectional(handle: string, did: string, plcDirectoryUrl?: string): Promise<boolean> {
   try {
-    const handleIdentity = await resolveHandle(handle);
+    const handleIdentity = await resolveHandle(handle, plcDirectoryUrl ?? DEFAULT_PLC_DIRECTORY_URL);
     if (handleIdentity.did !== did) {
       return false;
     }
 
-    const didIdentity = await resolveDid(did);
+    const didIdentity = await resolveDid(did, plcDirectoryUrl ?? DEFAULT_PLC_DIRECTORY_URL);
     if (!didIdentity.handle) {
       return false;
     }

@@ -26,3 +26,13 @@ export const TOKEN_RANDOM_BYTES_LENGTH = 20;
  */
 export const IDENTITY_QUERY_RETRY_COUNT = 2;
 export const IDENTITY_QUERY_RETRY_DELAY_MS = (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 10000);
+
+/**
+ * Default PLC directory URL for DID document lookups.
+ */
+export const DEFAULT_PLC_DIRECTORY_URL = 'https://plc.directory';
+
+/**
+ * Default public Bluesky API URL for unauthenticated profile fetching.
+ */
+export const DEFAULT_PUBLIC_API_URL = 'https://public.api.bsky.app';
