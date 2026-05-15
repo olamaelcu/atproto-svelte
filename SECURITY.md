@@ -1,44 +1,5 @@
 # Security Guidelines
 
-## Rate Limiting
-
-The library includes an in-memory token bucket rate limiter via `rateLimiter()`. Apply it to external operations with these thresholds:
-
-- Handle resolution (DNS): 30 requests per minute
-- DID document fetching (PLC): 60 requests per minute
-- OAuth authorization endpoints: 10 requests per minute
-
-These thresholds follow the OWASP API Security Guidelines.
-
-```typescript
-import { rateLimiter } from '@olamaelcu/atproto-svelte/server';
-
-const limiter = rateLimiter({ maxTokens: 30, intervalMs: 60_000 });
-```
-
-## Brute Force Protection
-
-Use `FailedAttemptsTracker` to defend against credential stuffing and session enumeration. Lockout duration scales with failed attempts:
-
-- 3 failed attempts: 15 second lockout
-- 5 failed attempts: 1 minute lockout
-- 10 failed attempts: 15 minute lockout
-- 20+ failed attempts: 1 hour lockout
-
-```typescript
-import { FailedAttemptsTracker } from '@olamaelcu/atproto-svelte/server';
-
-const tracker = new FailedAttemptsTracker({
-  maxAttempts: 5,
-  lockoutMs: 60_000,
-  windowMs: 300_000,
-});
-
-if (!tracker.record(failure)) {
-  throw new Error('Account temporarily locked');
-}
-```
-
 ## Input Validation
 
 Handles and DIDs are validated per ATProto specifications. The following values are rejected in production:
@@ -102,20 +63,58 @@ cookieOptions: {
 
 ## Environment Configuration
 
-Use `validateEnvConfig()` to enforce production safety checks at startup. Required variables for production:
+Use `validateEnvConfig()` to enforce production safety checks at startup. Required variables:
+
+### Required
 
 ```bash
-ATPROTO_CLIENT_ID=https://yourapp.com
-ATPROTO_CLIENT_SECRET=<32+ byte secret>
-ATPROTO_SESSION_SECRET=<32+ byte secret>
+OAUTH_DOMAIN=https://yourapp.com        # Your domain for OAuth (e.g., bsky.app)
+OAUTH_CLIENT_NAME=My App               # Display name for the OAuth client
+OAUTH_SCOPES=atproto transition:generic # OAuth scopes
+PDS_URL=https://bsky.social            # Personal Data Server URL
 ```
 
-When `isDev=false`, the validator rejects localhost in `ATPROTO_CLIENT_ID`, requires HTTPS endpoints, and enforces non-empty secrets.
+### Optional
+
+```bash
+OAUTH_JWK=<base64 encoded JWK>          # Private key for signed requests
+OAUTH_TOS_URI=https://yourapp.com/tos   # Terms of Service URI
+OAUTH_POLICY_URI=https://yourapp.com/policy # Privacy Policy URI
+FALLBACK_DID=did:plc:optional           # Fallback DID if resolution fails
+FALLBACK_DOMAIN=yourapp.com            # Fallback domain
+PLC_DIRECTORY_URL=https://plc.directory # PLC directory URL (default: https://plc.directory)
+PUBLIC_API_URL=https://api.yourapp.com # Public API URL for reference resolution
+DEV_HOST=localhost                     # Development host
+DEV_PORT=3000                          # Development port
+```
+
+### Session Secret
+
+The session secret is passed directly to `TokenCodec` and `SessionManager`, not via environment variable:
 
 ```typescript
-import { validateEnvConfig } from '@olamaelcu/atproto-svelte/server';
+import { createSessionManager } from '@olamaelcu/atproto-svelte/server';
 
-validateEnvConfig({
-  isDev: process.env.NODE_ENV === 'development',
+const sessionManager = createSessionManager({
+  // ...
+  tokenConfig: {
+    secret: process.env.SESSION_SECRET,  // 32+ byte secret
+    expiryMs: 30 * 24 * 60 * 60 * 1000,
+    renewalThresholdMs: 15 * 24 * 60 * 60 * 1000
+  }
 });
+```
+
+### Production Safety
+
+When `isDev=false`, the validator rejects:
+- localhost or 127.0.0.1 in `OAUTH_DOMAIN` or `PDS_URL`
+- Non-HTTPS endpoints (unless `NODE_ENV=development`)
+- Missing required variables
+
+```typescript
+import { loadEnvConfig } from '@olamaelcu/atproto-svelte/server';
+
+// Validates and loads config, throws on invalid config in production
+const config = loadEnvConfig();
 ```

@@ -10,6 +10,21 @@ allowed-tools: Read, Glob, Grep
 
 A SvelteKit library for ATProto OAuth authentication and identity resolution, with Tanstack Query caching built in.
 
+## Entry Points
+
+The library exports from two entry points:
+
+- **`@olamaelcu/atproto-svelte`** - Client-side safe exports (identity queries, types)
+- **`@olamaelcu/atproto-svelte/server`** - Server-only exports (OAuth, session management, identity resolution)
+
+```typescript
+// Client-side (safe for browser)
+import { createIdentityQuery } from '@olamaelcu/atproto-svelte/client';
+
+// Server-only (never import this on the client)
+import { createOAuthClient, createSessionManager } from '@olamaelcu/atproto-svelte/server';
+```
+
 ## Core Concepts
 
 ### DIDs (Decentralized Identifiers)
@@ -50,12 +65,51 @@ Peer dependencies (must be installed separately):
 npm install @tanstack/svelte-query @sveltejs/kit
 ```
 
-## Configuration
+## Storage Interfaces
 
 Consumers implement storage interfaces for their own database. The library provides no ORM-specific code.
 
+### OAuthStateStore
+
+Stores OAuth authorization state during the PKCE flow. Must persist `Uint8Array` values.
+
 ```typescript
-// Your session store implementation
+interface OAuthStateStore {
+  get(key: string): Promise<Uint8Array | undefined>;
+  set(key: string, value: Uint8Array): Promise<void>;
+  del(key: string): Promise<void>;
+}
+```
+
+### OAuthSessionStore
+
+Stores OAuth sessions with refresh tokens.
+
+```typescript
+interface OAuthSessionStore {
+  get(key: string): Promise<NodeSavedSession | undefined>;
+  set(key: string, session: NodeSavedSession): Promise<void>;
+  del(key: string): Promise<void>;
+}
+```
+
+### ServiceUrlStore
+
+Stores PDS URLs for resolved DIDs to avoid repeated PLC lookups. Supports atomic "take" operation for distributed scenarios.
+
+```typescript
+interface ServiceUrlStore {
+  getServiceUrl(key: string): Promise<string | undefined>;
+  setServiceUrl(key: string, url: string): Promise<void>;
+  takeServiceUrl(key: string): Promise<string | undefined>;  // Atomically retrieves and deletes
+}
+```
+
+### UserSessionStore
+
+Application-level session storage for authenticated users.
+
+```typescript
 interface UserSessionStore {
   getByTokenHash(hash: string): Promise<UserSession | undefined>;
   create(session: UserSession): Promise<void>;
@@ -64,48 +118,49 @@ interface UserSessionStore {
   deleteByDid(did: string): Promise<void>;
 }
 
-interface OAuthStateStore {
-  get(key: string): Promise<Uint8Array | undefined>;
-  set(key: string, value: Uint8Array): Promise<void>;
-  del(key: string): Promise<void>;
-}
-
-interface OAuthSessionStore {
-  get(key: string): Promise<NodeSavedSession | undefined>;
-  set(key: string, session: NodeSavedSession): Promise<void>;
-  del(key: string): Promise<void>;
+interface UserSession {
+  id: string;
+  did: string;
+  handle: string;
+  email: string | null;
+  serviceUrl: string | null;
+  createdAt: Date;
+  expiresAt: Date;
 }
 ```
 
-## Identity Resolution
+## Configuration
 
-Identity resolution uses Tanstack Query with stale-while-revalidate caching:
+### Environment Variables
 
-```svelte
-<script lang="ts">
-import { createIdentityQuery } from '@olamaelcu/atproto-svelte/client';
+```bash
+# Required
+OAUTH_DOMAIN=https://yourapp.com        # Your domain for OAuth
+OAUTH_CLIENT_NAME=My App               # Display name
+OAUTH_SCOPES=atproto transition:generic
+PDS_URL=https://bsky.social            # PDS URL
 
-const identityQuery = createIdentityQuery('user.bsky.social');
-const identity = $derived($identityQuery.data);
-</script>
-
-<p>DID: {identity?.did}</p>
-<p>Handle: {identity?.handle}</p>
-<p>Verified: {identity?.isVerified ? 'Yes' : 'No'}</p>
+# Optional
+OAUTH_JWK=<base64>                     # Private key for signed requests
+OAUTH_TOS_URI=https://yourapp.com/tos
+OAUTH_POLICY_URI=https://yourapp.com/policy
+FALLBACK_DID=did:plc:optional
+PLC_DIRECTORY_URL=https://plc.directory
 ```
 
-Query keys and stale times:
-| Query | Key | staleTime | gcTime |
-|-------|-----|-----------|--------|
-| Handle→DID | `['identity', 'handle', handle]` | 10 min | 60 min |
-| DID doc | `['identity', 'did', did]` | 15 min | 2 hrs |
-| Profile | `['identity', 'profile', did]` | 5 min | 30 min |
+Load and validate configuration:
+
+```typescript
+import { loadEnvConfig } from '@olamaelcu/atproto-svelte/server';
+
+const config = loadEnvConfig();  // Throws if validation fails in production
+```
 
 ## OAuth Setup
 
 ```typescript
 import { createOAuthClient } from '@olamaelcu/atproto-svelte/server';
-import type { OAuthStateStore, OAuthSessionStore } from '@olamaelcu/atproto-svelte/server';
+import type { OAuthStateStore, OAuthSessionStore, ServiceUrlStore } from '@olamaelcu/atproto-svelte/server';
 
 const { client, restore } = await createOAuthClient(
   {
@@ -118,7 +173,8 @@ const { client, restore } = await createOAuthClient(
   },
   {
     stateStore: myStateStore,
-    sessionStore: mySessionStore
+    sessionStore: mySessionStore,
+    serviceUrlStore: myServiceUrlStore  // optional
   }
 );
 ```
@@ -142,9 +198,100 @@ const sessionManager = createSessionManager({
     secure: true,
     sameSite: 'lax',
     path: '/'
-  }
+  },
+  userStore: myUserStore
 });
 ```
+
+### Session Validation
+
+```typescript
+// In hooks.server.ts
+import { sessionManager } from '$lib/server/session';
+
+export const handle = async ({ event, resolve }) => {
+  const session = await sessionManager.validateSession(event);
+  event.locals.session = session;
+  return resolve(event);
+};
+```
+
+### OAuth Callback Route
+
+Handle the OAuth callback in your SvelteKit route:
+
+```typescript
+// src/routes/oauth/callback/+server.ts
+import type { RequestHandler } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
+import { oauthClient } from '$lib/server/oauth';
+import { sessionManager } from '$lib/server/session';
+
+export const GET: RequestHandler = async ({ url }) => {
+  const code = url.searchParams.get('code');
+  const state = url.searchParams.get('state');
+
+  if (!code || !state) {
+    throw redirect(302, '/login?error=missing_params');
+  }
+
+  try {
+    const { session } = await oauthClient.callback(url, { state });
+    await sessionManager.createAndSetSession(
+      event,
+      session.did,
+      session.handle,
+      session.email,
+      session.serviceUrl
+    );
+  } catch (err) {
+    console.error('OAuth callback failed:', err);
+    throw redirect(302, '/login?error=callback_failed');
+  }
+
+  throw redirect(302, '/');
+};
+```
+
+### Programmatic Login (for testing)
+
+```typescript
+// Generate authorization URL and store state
+const url = await oauthClient.getAuthorizationUrl(state, 'S256');
+// Redirect user to url
+```
+
+### Session Restoration
+
+Restore a session from stored credentials (e.g., after server restart):
+
+```typescript
+const session = await restore(did);  // Uses sessionStore to reload tokens
+```
+
+## Identity Resolution
+
+Identity resolution uses Tanstack Query with stale-while-revalidate caching:
+
+```svelte
+<script lang="ts">
+  import { createIdentityQuery } from '@olamaelcu/atproto-svelte/client';
+
+  const identityQuery = createIdentityQuery('user.bsky.social');
+  const identity = $derived($identityQuery.data);
+</script>
+
+<p>DID: {identity?.did}</p>
+<p>Handle: {identity?.handle}</p>
+<p>Verified: {identity?.isVerified ? 'Yes' : 'No'}</p>
+```
+
+Query keys and stale times:
+| Query | Key | staleTime | gcTime |
+|-------|-----|-----------|--------|
+| Handle→DID | `['identity', 'handle', handle]` | 10 min | 60 min |
+| DID doc | `['identity', 'did', did]` | 15 min | 2 hrs |
+| Profile | `['identity', 'profile', did]` | 5 min | 30 min |
 
 ## Error Handling
 
@@ -156,9 +303,10 @@ Common failure modes:
 
 ## SvelteKit Integration
 
-In `hooks.server.ts`:
+### Server Hooks
 
 ```typescript
+// hooks.server.ts
 import { sessionManager } from '$lib/server/session';
 
 export const handle = async ({ event, resolve }) => {
@@ -168,9 +316,10 @@ export const handle = async ({ event, resolve }) => {
 };
 ```
 
-In `+page.server.ts`:
+### Page Load
 
 ```typescript
+// +page.server.ts
 export const load = async ({ locals }) => {
   return {
     session: locals.session
