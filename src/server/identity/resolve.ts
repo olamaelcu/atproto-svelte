@@ -1,5 +1,5 @@
 import { resolveTxt } from 'dns';
-import { fetchDidDocument, extractSigningKey, extractHandleFromAlsoKnownAs, type PlcDidDocument } from './plc.js';
+import { fetchDidDocument, extractSigningKey, extractHandleFromAlsoKnownAs, fetchPdsUrl } from './plc.js';
 import type { Identity } from '../../types/index.js';
 import { DEFAULT_PLC_DIRECTORY_URL } from '../constants.js';
 import { validateHandle } from './validate.js';
@@ -83,7 +83,7 @@ async function resolveWellKnown(handle: string): Promise<string | null> {
 export async function resolveDid(did: string, plcDirectoryUrl?: string): Promise<Identity> {
   const doc = await fetchDidDocument(did, plcDirectoryUrl ?? DEFAULT_PLC_DIRECTORY_URL);
 
-  const pdsUrl = extractPdsUrl(doc);
+  const pdsUrl = await fetchPdsUrl(did, plcDirectoryUrl ?? DEFAULT_PLC_DIRECTORY_URL);
   const signingKey = extractSigningKey(doc);
   const handle = extractHandleFromAlsoKnownAs(doc);
 
@@ -94,13 +94,6 @@ export async function resolveDid(did: string, plcDirectoryUrl?: string): Promise
     signingKey,
     isVerified: false
   };
-}
-
-function extractPdsUrl(doc: PlcDidDocument): string | null {
-  const pdsService = doc.service.find(
-    (s) => s.type === '#atproto_pds' || s.id.endsWith('#atproto_pds')
-  );
-  return pdsService?.serviceEndpoint ?? null;
 }
 
 export async function resolveIdentity(identifier: string, plcDirectoryUrl?: string): Promise<Identity> {

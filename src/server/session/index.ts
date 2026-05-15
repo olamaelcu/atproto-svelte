@@ -1,4 +1,4 @@
-export { createSessionManager, SessionManager } from './manager.js';
+export { createSessionManager } from './manager.js';
 export type { SessionManagerConfig } from '../types.js';
 export {
   TokenCodec,

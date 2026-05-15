@@ -58,6 +58,7 @@ HMAC-SHA256 signed tokens.
 
 - `['identity', 'handle', handle]`
 - `['identity', 'did', did]`
+- `['identity', 'resolve', identifier]`
 - `['identity', 'profile', did]`
 
 ## Storage Interfaces

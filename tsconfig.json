@@ -1,3 +1,4 @@
+// Run 'npx svelte-kit sync' before typechecking if .svelte-kit/tsconfig.json is missing
 {
   "extends": "./.svelte-kit/tsconfig.json",
   "compilerOptions": {
