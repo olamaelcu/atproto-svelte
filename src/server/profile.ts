@@ -7,15 +7,13 @@ export async function fetchProfile(actor: string, agent?: Agent, publicApiUrl?: 
 
   const response = await profileAgent.getProfile({ actor });
 
-  return {
-    did: response.data.did,
-    handle: response.data.handle,
-    displayName: response.data.displayName ?? null,
-    avatar: response.data.avatar ?? null,
-    description: response.data.description ?? null,
-    indexedAt: response.data.indexedAt ?? null,
-    followsCount: response.data.followsCount ?? 0,
-    followersCount: response.data.followersCount ?? 0,
-    followingCount: (response.data.followingCount as number) ?? 0,
-  };
-}
+return {
+		did: response.data.did,
+		handle: response.data.handle,
+		displayName: response.data.displayName ?? null,
+		avatar: response.data.avatar ?? null,
+		description: response.data.description ?? null,
+		indexedAt: response.data.indexedAt ?? null,
+		followsCount: response.data.followsCount ?? 0,
+		followersCount: response.data.followersCount ?? 0,
+	};}
