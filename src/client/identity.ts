@@ -1,133 +1,82 @@
 import { createQuery, QueryClient } from '@tanstack/svelte-query';
+import { Agent } from '@atproto/api';
 import type { Identity } from '../types/index.js';
 import {
-  IDENTITY_STALE_TIME_MS,
-  IDENTITY_GC_TIME_MS,
-  DID_STALE_TIME_MS,
-  DID_GC_TIME_MS,
-  IDENTITY_QUERY_RETRY_COUNT,
-  IDENTITY_QUERY_RETRY_DELAY_MS
+	IDENTITY_STALE_TIME_MS,
+	IDENTITY_GC_TIME_MS,
+	DID_STALE_TIME_MS,
+	DID_GC_TIME_MS,
+	IDENTITY_QUERY_RETRY_COUNT,
+	IDENTITY_QUERY_RETRY_DELAY_MS,
+	DEFAULT_PUBLIC_API_URL
 } from '../server/constants.js';
 
-/**
- * Pre-configured Tanstack Query client for identity operations.
- *
- * @remarks
- * This client is pre-configured with sensible defaults for identity queries:
- * - 10 minute stale time for handle resolution
- * - 1 hour garbage collection time
- * - 2 retries with exponential backoff
- *
- * @example
- * ```ts
- * import { identityClient } from '@olamaelcu/atproto-svelte';
- *
- * // Use with QueryClientProvider
- * ```
- */
 export const identityClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: IDENTITY_STALE_TIME_MS,
-      gcTime: IDENTITY_GC_TIME_MS,
-      refetchOnWindowFocus: false,
-      retry: IDENTITY_QUERY_RETRY_COUNT,
-      retryDelay: IDENTITY_QUERY_RETRY_DELAY_MS
-    }
-  }
+	defaultOptions: {
+		queries: {
+			staleTime: IDENTITY_STALE_TIME_MS,
+			gcTime: IDENTITY_GC_TIME_MS,
+			refetchOnWindowFocus: false,
+			retry: IDENTITY_QUERY_RETRY_COUNT,
+			retryDelay: IDENTITY_QUERY_RETRY_DELAY_MS
+		}
+	}
 });
 
-/**
- * Create a query for resolving any identifier (handle or DID).
- *
- * @param identifier - Either a handle (e.g., 'alice.bsky.social') or DID
- * @param plcDirectoryUrl - Optional PLC directory URL (defaults to 'https://plc.directory')
- * @returns A Tanstack Query for the resolved Identity
- *
- * @remarks
- * Automatically detects whether the identifier is a DID or handle
- * and resolves it accordingly. Results are cached for 10 minutes.
- *
- * @example
- * ```ts
- * const query = createIdentityQuery('alice.bsky.social');
- * const { data } = query;
- * ```
- */
-export function createIdentityQuery(identifier: string, plcDirectoryUrl?: string): ReturnType<typeof createQuery<Identity>> {
-  return createQuery({
-    queryKey: ['identity', 'resolve', identifier],
-    queryFn: () => resolveIdentity(identifier, plcDirectoryUrl),
-    staleTime: IDENTITY_STALE_TIME_MS,
-    gcTime: IDENTITY_GC_TIME_MS
-  });
+export function createIdentityQuery(identifier: string, publicApiUrl?: string): ReturnType<typeof createQuery<Identity>> {
+	return createQuery({
+		queryKey: ['identity', 'resolve', identifier],
+		queryFn: () => resolveIdentity(identifier, publicApiUrl),
+		staleTime: IDENTITY_STALE_TIME_MS,
+		gcTime: IDENTITY_GC_TIME_MS
+	});
 }
 
-/**
- * Create a query for resolving a handle to an Identity.
- *
- * @param handle - The handle to resolve (e.g., 'alice.bsky.social')
- * @param plcDirectoryUrl - Optional PLC directory URL (defaults to 'https://plc.directory')
- * @returns A Tanstack Query for the resolved Identity
- *
- * @remarks
- * Resolves the handle via DNS TXT record or .well-known endpoint.
- * Results are cached for 10 minutes.
- *
- * @example
- * ```ts
- * const query = createResolveHandleQuery('alice.bsky.social');
- * const { data, isLoading } = query;
- * ```
- */
-export function createResolveHandleQuery(handle: string, plcDirectoryUrl?: string): ReturnType<typeof createQuery<Identity>> {
-  return createQuery({
-    queryKey: ['identity', 'handle', handle],
-    queryFn: () => resolveHandle(handle, plcDirectoryUrl),
-    staleTime: IDENTITY_STALE_TIME_MS,
-    gcTime: IDENTITY_GC_TIME_MS
-  });
+export function createResolveHandleQuery(handle: string, publicApiUrl?: string): ReturnType<typeof createQuery<Identity>> {
+	return createQuery({
+		queryKey: ['identity', 'handle', handle],
+		queryFn: () => resolveHandle(handle, publicApiUrl),
+		staleTime: IDENTITY_STALE_TIME_MS,
+		gcTime: IDENTITY_GC_TIME_MS
+	});
 }
 
-/**
- * Create a query for resolving a DID to an Identity.
- *
- * @param did - The DID to resolve (e.g., 'did:plc:abc123')
- * @param plcDirectoryUrl - Optional PLC directory URL (defaults to 'https://plc.directory')
- * @returns A Tanstack Query for the resolved Identity
- *
- * @remarks
- * Resolves the DID via the PLC directory. Results are cached for 15 minutes
- * since DIDs are more stable than handles.
- *
- * @example
- * ```ts
- * const query = createResolveDidQuery('did:plc:abc123');
- * const { data } = query;
- * ```
- */
-export function createResolveDidQuery(did: string, plcDirectoryUrl?: string): ReturnType<typeof createQuery<Identity>> {
-  return createQuery({
-    queryKey: ['identity', 'did', did],
-    queryFn: () => resolveDid(did, plcDirectoryUrl),
-    staleTime: DID_STALE_TIME_MS,
-    gcTime: DID_GC_TIME_MS
-  });
+export function createResolveDidQuery(did: string, publicApiUrl?: string): ReturnType<typeof createQuery<Identity>> {
+	return createQuery({
+		queryKey: ['identity', 'did', did],
+		queryFn: () => resolveDid(did, publicApiUrl),
+		staleTime: DID_STALE_TIME_MS,
+		gcTime: DID_GC_TIME_MS
+	});
 }
 
-async function resolveHandle(handle: string, plcDirectoryUrl?: string): Promise<Identity> {
-  const { resolveHandle: fn } = await import('../server/index.js');
-  return fn(handle, plcDirectoryUrl);
+function resolveHandle(handle: string, publicApiUrl?: string): Promise<Identity> {
+	const agent = new Agent(publicApiUrl ?? DEFAULT_PUBLIC_API_URL);
+	return agent.resolveHandle({ handle }).then((res) => ({
+		did: res.data.did,
+		handle,
+		pdsUrl: null,
+		signingKey: null,
+		isVerified: false
+	}));
 }
 
-async function resolveDid(did: string, plcDirectoryUrl?: string): Promise<Identity> {
-  const { resolveDid: fn } = await import('../server/index.js');
-  return fn(did, plcDirectoryUrl);
+function resolveDid(did: string, publicApiUrl?: string): Promise<Identity> {
+	const agent = new Agent(publicApiUrl ?? DEFAULT_PUBLIC_API_URL);
+	return agent.getProfile({ actor: did }).then((res) => ({
+		did: res.data.did,
+		handle: res.data.handle,
+		pdsUrl: null,
+		signingKey: null,
+		isVerified: false
+	}));
 }
 
-async function resolveIdentity(identifier: string, plcDirectoryUrl?: string): Promise<Identity> {
-  const { resolveIdentity: fn } = await import('../server/index.js');
-  return fn(identifier, plcDirectoryUrl);
+function resolveIdentity(identifier: string, publicApiUrl?: string): Promise<Identity> {
+	if (identifier.startsWith('did:')) {
+		return resolveDid(identifier, publicApiUrl);
+	}
+	return resolveHandle(identifier, publicApiUrl);
 }
 
 export { identityClient as default };

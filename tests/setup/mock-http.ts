@@ -93,8 +93,7 @@ export function createMockAtprotoServer(options: MockServerOptions = {}): SetupS
 				description: null,
 				indexedAt: null,
 				followsCount: 0,
-				followersCount: 0,
-				followingCount: 0
+				followersCount: 0
 			});
 		}),
 

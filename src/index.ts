@@ -1,15 +1,14 @@
 export type { Identity, Profile } from './types';
 export type {
-  OAuthEnvironmentConfig,
-  UserSessionStore,
-  ValidatedSession,
-  OAuthStateStore,
-  OAuthSessionStore
+	OAuthEnvironmentConfig,
+	UserSessionStore,
+	ValidatedSession,
+	OAuthStateStore,
+	OAuthSessionStore
 } from './server/types';
 
 export { createOAuthClient } from './server/oauth/client';
 export { createSessionManager } from './server/session/manager';
-export { resolveHandle, resolveDid, resolveIdentity } from './server/identity/resolve';
 
 export { createIdentityQuery, createResolveDidQuery, createResolveHandleQuery } from './client/identity';
 export { createProfileQuery } from './client/profile';

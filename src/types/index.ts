@@ -7,13 +7,12 @@ export interface Identity {
 }
 
 export interface Profile {
-  did: string;
-  handle: string;
-  displayName: string | null;
-  avatar: string | null;
-  description: string | null;
-  indexedAt: string | null;
-  followsCount: number;
-  followersCount: number;
-  followingCount: number;
+	did: string;
+	handle: string;
+	displayName: string | null;
+	avatar: string | null;
+	description: string | null;
+	indexedAt: string | null;
+	followsCount: number;
+	followersCount: number;
 }
