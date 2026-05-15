@@ -23,6 +23,6 @@ function fetchProfile(did: string, agent?: Agent, publicApiUrl?: string): Promis
 		indexedAt: res.data.indexedAt ?? null,
 		followsCount: res.data.followsCount ?? 0,
 		followersCount: res.data.followersCount ?? 0,
-		postsCount: res.data.postsCount ?? 0
+		postsCount: res.data.postsCount ?? 0,
 	}));
 }

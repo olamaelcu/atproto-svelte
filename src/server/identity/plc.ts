@@ -73,6 +73,6 @@ export function extractHandleFromAlsoKnownAs(doc: PlcDidDocument): string | null
   if (!atHandle) return null;
 
   const handle = atHandle.replace('at://', '');
-  if (handle.includes('/')) return handle.split('/')[0];
+  if (handle.includes('/')) return handle.split('/')[0] ?? handle;
   return handle;
 }

@@ -105,7 +105,7 @@ export class TokenCodec {
     const parts = token.split('.');
     if (parts.length !== 2) return null;
 
-    const [randomPart, sigPart] = parts;
+    const [randomPart, sigPart] = parts as [string, string];
     let randomBytes_: Uint8Array;
     let actualSig: Uint8Array;
     try {
@@ -121,12 +121,12 @@ export class TokenCodec {
 
     let diff = 0;
     for (let i = 0; i < expectedSig.length; i++) {
-      diff |= expectedSig[i] ^ actualSig[i];
+      diff |= expectedSig[i]! ^ actualSig[i]!;
     }
 
     if (diff !== 0) return null;
 
-    return { randomPart, sigPart };
+    return { randomPart: randomPart!, sigPart: sigPart! };
   }
 
   hash(token: string): string {

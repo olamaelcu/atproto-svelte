@@ -16,5 +16,6 @@ return {
 		indexedAt: response.data.indexedAt ?? null,
 		followsCount: response.data.followsCount ?? 0,
 		followersCount: response.data.followersCount ?? 0,
-	postsCount: response.data.postsCount ?? 0
-	};}
+		postsCount: response.data.postsCount ?? 0,
+	};
+}
