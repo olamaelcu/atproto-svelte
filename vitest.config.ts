@@ -5,7 +5,7 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["src/**/*.{test,spec}.ts", "tests/**/*.{test,spec}.ts"],
-    exclude: ["tests/integration/**", "src/**/*.svelte.{test,spec}.ts"],
+    exclude: ["tests/integration/**/*.svelte.{test,spec}.ts", "src/**/*.svelte.{test,spec}.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html", "cobertura"],
