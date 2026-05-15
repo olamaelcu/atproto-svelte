@@ -31,10 +31,10 @@ const mockDidDocument = {
 };
 
 const mockPlcHandlers = [
-	http.get(new RegExp('https://plc\\.directory/did:plc:testdid123'), () => {
+	http.get(new RegExp('https://plc\\.directory/did%3Aplc%3Atestdid123'), () => {
 		return HttpResponse.json(mockDidDocument);
 	}),
-	http.get(new RegExp('https://plc\\.directory/did:plc:invalid'), () => {
+	http.get(new RegExp('https://plc\\.directory/did%3Aplc%3Ainvalid'), () => {
 		return HttpResponse.json({ error: 'Not Found' }, { status: 404 });
 	}),
 	http.get(new RegExp('https://bsky\\.social/xrpc/com\\.atproto\\.identity\\.resolveHandle'), ({ request }) => {
@@ -72,7 +72,7 @@ describe('identity resolution', () => {
 		it('should use custom plcDirectoryUrl when provided', async () => {
 			const customUrl = 'https://plc.example.com';
 			server.use(
-				http.get(new RegExp('https://plc\\.example\\.com/did:plc:testdid123'), () => {
+				http.get(new RegExp('https://plc\\.example\\.com/did%3Aplc%3Atestdid123'), () => {
 					return HttpResponse.json({
 						...mockDidDocument,
 						service: [
