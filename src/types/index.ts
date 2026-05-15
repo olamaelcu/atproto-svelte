@@ -15,4 +15,5 @@ export interface Profile {
 	indexedAt: string | null;
 	followsCount: number;
 	followersCount: number;
+	postsCount: number;
 }
