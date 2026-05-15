@@ -47,14 +47,14 @@
   },
   "dependencies": {
     "@atproto/api": "^0.13.0",
+    "@atproto/jwk": "^0.6.0",
+    "@atproto/jwk-jose": "^0.1.11",
     "@atproto/oauth-client-node": "^0.1.0",
     "@oslojs/crypto": "^1.0.1",
     "@oslojs/encoding": "^1.1.0",
     "jose": "^5.0.0"
   },
   "devDependencies": {
-    "@atproto/jwk": "^0.6.0",
-    "@atproto/jwk-jose": "^0.1.11",
     "@atproto/oauth-client": "^0.6.1",
     "@eslint/js": "^10.0.1",
     "@sveltejs/adapter-node": "^5.0.0",
