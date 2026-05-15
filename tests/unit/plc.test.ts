@@ -69,7 +69,7 @@ describe('plc.ts', () => {
 			expect(doc.service).toHaveLength(1);
 			expect(doc.alsoKnownAs).toContain('at://alice.example.com');
 			expect(mockFetch).toHaveBeenCalledWith(
-				expect.stringContaining(`/did:plc:abc123def456`),
+				expect.stringContaining(`/did%3Aplc%3Aabc123def456`),
 				expect.any(Object)
 			);
 		});
