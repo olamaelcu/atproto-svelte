@@ -1,6 +1,7 @@
 export { createOAuthClient } from './oauth/client';
 export { createSessionManager } from './session/manager';
 export { resolveHandle, resolveDid, resolveIdentity, verifyBidirectional } from './identity/resolve';
+export { validateHandle, validateDid, validateIdentity } from './identity/validate.js';
 export { loadEnvConfig, validateEnvConfig } from './config/env.js';
 
 export type {

@@ -197,4 +197,14 @@ describe('loadEnvConfig', () => {
 
 		expect(() => loadEnvConfig()).toThrow();
 	});
+
+	it('should throw when DEV_PORT is not a number', () => {
+		process.env.OAUTH_DOMAIN = 'test.example.com';
+		process.env.OAUTH_CLIENT_NAME = 'Test App';
+		process.env.OAUTH_SCOPES = 'atproto';
+		process.env.PDS_URL = 'https://bsky.social';
+		process.env.DEV_PORT = 'not-a-number';
+
+		expect(() => loadEnvConfig()).toThrow(/DEV_PORT must be a number/);
+	});
 });

@@ -8,7 +8,7 @@ import type {
 } from '../types.js';
 import type { NodeOAuthClient } from '@atproto/oauth-client-node';
 import { Agent } from '@atproto/api';
-import { TokenRefreshError } from '@atproto/oauth-client';
+import { TokenRefreshError } from '@atproto/oauth-client-node';
 import type { RequestEvent } from '@sveltejs/kit';
 import { TOKEN_RANDOM_BYTES_LENGTH } from '../constants.js';
 

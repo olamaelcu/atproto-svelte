@@ -116,6 +116,7 @@ export function loadEnvConfig(): OAuthEnvironmentConfig {
   }
   if (process.env.DEV_PORT) {
     config.devPort = parseInt(process.env.DEV_PORT, 10);
+    if (isNaN(config.devPort)) throw new Error('DEV_PORT must be a number');
   }
   if (process.env.PLC_DIRECTORY_URL) {
     config.plcDirectoryUrl = process.env.PLC_DIRECTORY_URL;
