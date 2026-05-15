@@ -24,7 +24,7 @@ const mockDidDocument = {
 		{
 			id: '#atproto_pds',
 			type: 'AtprotoPersonalDataServer',
-			endpoint: 'https://bsky.social'
+			serviceEndpoint: 'https://bsky.social'
 		}
 	],
 	alsoKnownAs: ['at://test.bsky.social']
@@ -79,7 +79,7 @@ describe('identity resolution', () => {
 							{
 								id: '#atproto_pds',
 								type: 'AtprotoPersonalDataServer',
-								endpoint: 'https://custom.pds.com'
+								serviceEndpoint: 'https://custom.pds.com'
 							}
 						]
 					});

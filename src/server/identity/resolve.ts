@@ -94,7 +94,7 @@ function extractPdsUrl(doc: PlcDidDocument): string | null {
   const pdsService = doc.service.find(
     (s) => s.type === '#atproto_pds' || s.id.endsWith('#atproto_pds')
   );
-  return pdsService?.endpoint ?? null;
+  return pdsService?.serviceEndpoint ?? null;
 }
 
 export async function resolveIdentity(identifier: string, plcDirectoryUrl?: string): Promise<Identity> {

@@ -15,7 +15,7 @@ export interface PlcDidDocument {
   service: Array<{
     id: string;
     type: string;
-    endpoint: string;
+    serviceEndpoint: string;
   }>;
   alsoKnownAs: string[];
 }
@@ -41,7 +41,7 @@ export async function fetchPdsUrl(did: string, plcDirectoryUrl?: string): Promis
     const pdsService = doc.service.find(
       (s) => s.type === '#atproto_pds' || s.id.endsWith('#atproto_pds')
     );
-    return pdsService?.endpoint ?? null;
+    return pdsService?.serviceEndpoint ?? null;
   } catch {
     return null;
   }
