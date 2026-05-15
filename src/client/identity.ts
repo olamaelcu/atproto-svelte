@@ -10,7 +10,7 @@ import {
 	IDENTITY_QUERY_RETRY_COUNT,
 	IDENTITY_QUERY_RETRY_DELAY_MS,
 	DEFAULT_PUBLIC_API_URL
-} from '../server/constants.js';
+} from '../constants.js';
 
 const defaultOptions = {
 	queries: {
@@ -119,8 +119,7 @@ function resolveHandle(handle: string, publicApiUrl?: string): Promise<Identity>
 		did: res.data.did,
 		handle,
 		pdsUrl: null,
-		signingKey: null,
-		isVerified: false
+		signingKey: null
 	}));
 }
 
@@ -130,8 +129,7 @@ function resolveDid(did: string, publicApiUrl?: string): Promise<Identity> {
 		did: res.data.did,
 		handle: res.data.handle,
 		pdsUrl: null,
-		signingKey: null,
-		isVerified: false
+		signingKey: null
 	}));
 }
 

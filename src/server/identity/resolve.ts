@@ -91,8 +91,7 @@ export async function resolveDid(did: string, plcDirectoryUrl?: string): Promise
     did,
     handle,
     pdsUrl,
-    signingKey,
-    isVerified: false
+    signingKey
   };
 }
 

@@ -1,17 +1,5 @@
-export const IDENTITY_STALE_TIME_MS = 1000 * 60 * 10;
-export const IDENTITY_GC_TIME_MS = 1000 * 60 * 60;
-
-export const DID_STALE_TIME_MS = 1000 * 60 * 15;
-export const DID_GC_TIME_MS = 1000 * 60 * 60 * 2;
-
-export const PROFILE_STALE_TIME_MS = 1000 * 60 * 5;
-export const PROFILE_GC_TIME_MS = 1000 * 60 * 30;
+export { IDENTITY_STALE_TIME_MS, IDENTITY_GC_TIME_MS, DID_STALE_TIME_MS, DID_GC_TIME_MS, PROFILE_STALE_TIME_MS, PROFILE_GC_TIME_MS, IDENTITY_QUERY_RETRY_COUNT, IDENTITY_QUERY_RETRY_DELAY_MS, DEFAULT_PUBLIC_API_URL } from '../constants.js';
 
 export const TOKEN_RANDOM_BYTES_LENGTH = 20;
 
-export const IDENTITY_QUERY_RETRY_COUNT = 2;
-export const IDENTITY_QUERY_RETRY_DELAY_MS = (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 10000);
-
 export const DEFAULT_PLC_DIRECTORY_URL = 'https://plc.directory';
-
-export const DEFAULT_PUBLIC_API_URL = 'https://public.api.bsky.app';

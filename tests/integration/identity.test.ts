@@ -62,7 +62,6 @@ describe('identity resolution', () => {
 			expect(identity.pdsUrl).toBe('https://bsky.social');
 			expect(identity.signingKey).toBe('did:key:zQM4cHt6V4R8xjTJ7Q7vgTLMXgAvJ_rW6L3M6xMU8l0');
 			expect(identity.handle).toBe('test.bsky.social');
-			expect(identity.isVerified).toBe(false);
 		});
 
 		it('should throw error for invalid DID', async () => {

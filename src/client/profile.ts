@@ -1,7 +1,7 @@
 import { createQuery } from '@tanstack/svelte-query';
 import { Agent } from '@atproto/api';
 import type { Profile } from '../types/index.js';
-import { PROFILE_STALE_TIME_MS, PROFILE_GC_TIME_MS, DEFAULT_PUBLIC_API_URL } from '../server/constants.js';
+import { PROFILE_STALE_TIME_MS, PROFILE_GC_TIME_MS, DEFAULT_PUBLIC_API_URL } from '../constants.js';
 
 export function createProfileQuery(did: string, agent?: Agent, publicApiUrl?: string) {
 	return createQuery({
@@ -22,6 +22,7 @@ function fetchProfile(did: string, agent?: Agent, publicApiUrl?: string): Promis
 		description: res.data.description ?? null,
 		indexedAt: res.data.indexedAt ?? null,
 		followsCount: res.data.followsCount ?? 0,
-		followersCount: res.data.followersCount ?? 0
+		followersCount: res.data.followersCount ?? 0,
+		postsCount: res.data.postsCount ?? 0
 	}));
 }

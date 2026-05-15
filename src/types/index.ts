@@ -1,11 +1,9 @@
 export interface Identity {
-  did: string;
-  handle: string | null;
-  pdsUrl: string | null;
-  signingKey: string | null;
-  isVerified: boolean;
+	did: string;
+	handle: string | null;
+	pdsUrl: string | null;
+	signingKey: string | null;
 }
-
 export interface Profile {
 	did: string;
 	handle: string;
