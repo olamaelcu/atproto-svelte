@@ -1,48 +1,57 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 
 describe('plc.ts', () => {
 	let server: ReturnType<typeof setupServer>;
 
-	beforeEach(() => {
+	beforeAll(() => {
 		server = setupServer();
+		server.listen({ onUnhandledRequest: 'bypass' });
 	});
 
-	afterEach(() => {
+	afterAll(() => {
 		server.close();
+	});
+
+	beforeEach(() => {
+		server.resetHandlers();
 	});
 
 	describe('fetchDidDocument', () => {
 		it('with valid DID returns DID document object', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
-					return HttpResponse.json({
-						'@context': ['https://www.w3.org/ns/did/v1'],
-						id: did,
-						verificationMethod: [
-							{
-								id: `${did}#atproto`,
-								type: 'EcdsaSecp256k1RecoveryMethod2020',
-								controller: did,
-								publicKeyJwk: {
-									kty: 'ES',
-									crv: 'secp256k1',
-									x: 'SNXlNqL_MnFVXstKKyLrSW4X4B9P6yigV4FDKO90_9k',
-									y: 'cvjABaM59WNbLM4tJ7rOUf3L6r1fFk5r2f0aBQ8-j0A'
+				http.get('https://plc.directory/', ({ request }) => {
+					const url = new URL(request.url);
+					if (url.pathname === `/${did}`) {
+						return HttpResponse.json({
+							'@context': ['https://www.w3.org/ns/did/v1'],
+							id: did,
+							verificationMethod: [
+								{
+									id: `${did}#atproto`,
+									type: 'EcdsaSecp256k1RecoveryMethod2020',
+									controller: did,
+									publicKeyJwk: {
+										kty: 'ES',
+										crv: 'secp256k1',
+										x: 'SNXlNqL_MnFVXstKKyLrSW4X4B9P6yigV4FDKO90_9k',
+										y: 'cvjABaM59WNbLM4tJ7rOUf3L6r1fFk5r2f0aBQ8-j0A'
+									}
 								}
-							}
-						],
-						service: [
-							{
-								id: '#atproto_pds',
-								type: 'AtprotoPersonalDataServer',
-								serviceEndpoint: 'https://bsky.social'
-							}
-						],
-						alsoKnownAs: ['at://alice.example.com']
-					});
+							],
+							service: [
+								{
+									id: '#atproto_pds',
+									type: 'AtprotoPersonalDataServer',
+									serviceEndpoint: 'https://bsky.social'
+								}
+							],
+							alsoKnownAs: ['at://alice.example.com']
+						});
+					}
+					return HttpResponse.json({});
 				})
 			);
 
@@ -58,18 +67,22 @@ describe('plc.ts', () => {
 		it('with missing verificationMethod returns document with null signingKey', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
-					return HttpResponse.json({
-						id: did,
-						service: [
-							{
-								id: '#atproto_pds',
-								type: 'AtprotoPersonalDataServer',
-								serviceEndpoint: 'https://bsky.social'
-							}
-						],
-						alsoKnownAs: ['at://alice.example.com']
-					});
+				http.get('https://plc.directory/', ({ request }) => {
+					const url = new URL(request.url);
+					if (url.pathname === `/${did}`) {
+						return HttpResponse.json({
+							id: did,
+							service: [
+								{
+									id: '#atproto_pds',
+									type: 'AtprotoPersonalDataServer',
+									serviceEndpoint: 'https://bsky.social'
+								}
+							],
+							alsoKnownAs: ['at://alice.example.com']
+						});
+					}
+					return HttpResponse.json({});
 				})
 			);
 
@@ -82,24 +95,28 @@ describe('plc.ts', () => {
 		it('with missing service array returns document with null pdsUrl', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
-					return HttpResponse.json({
-						id: did,
-						verificationMethod: [
-							{
-								id: `${did}#atproto`,
-								type: 'EcdsaSecp256k1RecoveryMethod2020',
-								controller: did,
-								publicKeyJwk: {
-									kty: 'ES',
-									crv: 'secp256k1',
-									x: 'SNXlNqL_MnFVXstKKyLrSW4X4B9P6yigV4FDKO90_9k',
-									y: 'cvjABaM59WNbLM4tJ7rOUf3L6r1fFk5r2f0aBQ8-j0A'
+				http.get('https://plc.directory/', ({ request }) => {
+					const url = new URL(request.url);
+					if (url.pathname === `/${did}`) {
+						return HttpResponse.json({
+							id: did,
+							verificationMethod: [
+								{
+									id: `${did}#atproto`,
+									type: 'EcdsaSecp256k1RecoveryMethod2020',
+									controller: did,
+									publicKeyJwk: {
+										kty: 'ES',
+										crv: 'secp256k1',
+										x: 'SNXlNqL_MnFVXstKKyLrSW4X4B9P6yigV4FDKO90_9k',
+										y: 'cvjABaM59WNbLM4tJ7rOUf3L6r1fFk5r2f0aBQ8-j0A'
+									}
 								}
-							}
-						],
-						alsoKnownAs: ['at://alice.example.com']
-					});
+							],
+							alsoKnownAs: ['at://alice.example.com']
+						});
+					}
+					return HttpResponse.json({});
 				})
 			);
 
@@ -113,30 +130,34 @@ describe('plc.ts', () => {
 		it('with missing alsoKnownAs returns document with null handle', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
-					return HttpResponse.json({
-						id: did,
-						verificationMethod: [
-							{
-								id: `${did}#atproto`,
-								type: 'EcdsaSecp256k1RecoveryMethod2020',
-								controller: did,
-								publicKeyJwk: {
-									kty: 'ES',
-									crv: 'secp256k1',
-									x: 'SNXlNqL_MnFVXstKKyLrSW4X4B9P6yigV4FDKO90_9k',
-									y: 'cvjABaM59WNbLM4tJ7rOUf3L6r1fFk5r2f0aBQ8-j0A'
+				http.get('https://plc.directory/', ({ request }) => {
+					const url = new URL(request.url);
+					if (url.pathname === `/${did}`) {
+						return HttpResponse.json({
+							id: did,
+							verificationMethod: [
+								{
+									id: `${did}#atproto`,
+									type: 'EcdsaSecp256k1RecoveryMethod2020',
+									controller: did,
+									publicKeyJwk: {
+										kty: 'ES',
+										crv: 'secp256k1',
+										x: 'SNXlNqL_MnFVXstKKyLrSW4X4B9P6yigV4FDKO90_9k',
+										y: 'cvjABaM59WNbLM4tJ7rOUf3L6r1fFk5r2f0aBQ8-j0A'
+									}
 								}
-							}
-						],
-						service: [
-							{
-								id: '#atproto_pds',
-								type: 'AtprotoPersonalDataServer',
-								serviceEndpoint: 'https://bsky.social'
-							}
-						]
-					});
+							],
+							service: [
+								{
+									id: '#atproto_pds',
+									type: 'AtprotoPersonalDataServer',
+									serviceEndpoint: 'https://bsky.social'
+								}
+							]
+						});
+					}
+					return HttpResponse.json({});
 				})
 			);
 
@@ -149,31 +170,35 @@ describe('plc.ts', () => {
 		it('with Secp256k1 key returns null for signingKey', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
-					return HttpResponse.json({
-						id: did,
-						verificationMethod: [
-							{
-								id: `${did}#atproto`,
-								type: 'EcdsaSecp256k1RecoveryMethod2020',
-								controller: did,
-								publicKeyJwk: {
-									kty: 'ES',
-									crv: 'secp256k1',
-									x: 'SNXlNqL_MnFVXstKKyLrSW4X4B9P6yigV4FDKO90_9k',
-									y: 'cvjABaM59WNbLM4tJ7rOUf3L6r1fFk5r2f0aBQ8-j0A'
+				http.get('https://plc.directory/', ({ request }) => {
+					const url = new URL(request.url);
+					if (url.pathname === `/${did}`) {
+						return HttpResponse.json({
+							id: did,
+							verificationMethod: [
+								{
+									id: `${did}#atproto`,
+									type: 'EcdsaSecp256k1RecoveryMethod2020',
+									controller: did,
+									publicKeyJwk: {
+										kty: 'ES',
+										crv: 'secp256k1',
+										x: 'SNXlNqL_MnFVXstKKyLrSW4X4B9P6yigV4FDKO90_9k',
+										y: 'cvjABaM59WNbLM4tJ7rOUf3L6r1fFk5r2f0aBQ8-j0A'
+									}
 								}
-							}
-						],
-						service: [
-							{
-								id: '#atproto_pds',
-								type: 'AtprotoPersonalDataServer',
-								serviceEndpoint: 'https://bsky.social'
-							}
-						],
-						alsoKnownAs: ['at://alice.example.com']
-					});
+							],
+							service: [
+								{
+									id: '#atproto_pds',
+									type: 'AtprotoPersonalDataServer',
+									serviceEndpoint: 'https://bsky.social'
+								}
+							],
+							alsoKnownAs: ['at://alice.example.com']
+						});
+					}
+					return HttpResponse.json({});
 				})
 			);
 
@@ -186,30 +211,34 @@ describe('plc.ts', () => {
 		it('with Ed25519 key returns the key', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
-					return HttpResponse.json({
-						id: did,
-						verificationMethod: [
-							{
-								id: `${did}#atproto`,
-								type: 'JsonWebKey2020',
-								controller: did,
-								publicKeyJwk: {
-									kty: 'OKP',
-									crv: 'Ed25519',
-									x: 'VCFIqFzKrB8YBDm2hkJVfMGEpH2wQS2aZ7f2k3F9VZw'
+				http.get('https://plc.directory/', ({ request }) => {
+					const url = new URL(request.url);
+					if (url.pathname === `/${did}`) {
+						return HttpResponse.json({
+							id: did,
+							verificationMethod: [
+								{
+									id: `${did}#atproto`,
+									type: 'JsonWebKey2020',
+									controller: did,
+									publicKeyJwk: {
+										kty: 'OKP',
+										crv: 'Ed25519',
+										x: 'VCFIqFzKrB8YBDm2hkJVfMGEpH2wQS2aZ7f2k3F9VZw'
+									}
 								}
-							}
-						],
-						service: [
-							{
-								id: '#atproto_pds',
-								type: 'AtprotoPersonalDataServer',
-								serviceEndpoint: 'https://bsky.social'
-							}
-						],
-						alsoKnownAs: ['at://alice.example.com']
-					});
+							],
+							service: [
+								{
+									id: '#atproto_pds',
+									type: 'AtprotoPersonalDataServer',
+									serviceEndpoint: 'https://bsky.social'
+								}
+							],
+							alsoKnownAs: ['at://alice.example.com']
+						});
+					}
+					return HttpResponse.json({});
 				})
 			);
 
@@ -224,31 +253,35 @@ describe('plc.ts', () => {
 		it('with valid service entry returns the endpoint URL', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
-					return HttpResponse.json({
-						id: did,
-						verificationMethod: [
-							{
-								id: `${did}#atproto`,
-								type: 'EcdsaSecp256k1RecoveryMethod2020',
-								controller: did,
-								publicKeyJwk: {
-									kty: 'ES',
-									crv: 'secp256k1',
-									x: 'SNXlNqL_MnFVXstKKyLrSW4X4B9P6yigV4FDKO90_9k',
-									y: 'cvjABaM59WNbLM4tJ7rOUf3L6r1fFk5r2f0aBQ8-j0A'
+				http.get('https://plc.directory/', ({ request }) => {
+					const url = new URL(request.url);
+					if (url.pathname === `/${did}`) {
+						return HttpResponse.json({
+							id: did,
+							verificationMethod: [
+								{
+									id: `${did}#atproto`,
+									type: 'EcdsaSecp256k1RecoveryMethod2020',
+									controller: did,
+									publicKeyJwk: {
+										kty: 'ES',
+										crv: 'secp256k1',
+										x: 'SNXlNqL_MnFVXstKKyLrSW4X4B9P6yigV4FDKO90_9k',
+										y: 'cvjABaM59WNbLM4tJ7rOUf3L6r1fFk5r2f0aBQ8-j0A'
+									}
 								}
-							}
-						],
-						service: [
-							{
-								id: '#atproto_pds',
-								type: 'AtprotoPersonalDataServer',
-								serviceEndpoint: 'https://bsky.social'
-							}
-						],
-						alsoKnownAs: ['at://alice.example.com']
-					});
+							],
+							service: [
+								{
+									id: '#atproto_pds',
+									type: 'AtprotoPersonalDataServer',
+									serviceEndpoint: 'https://bsky.social'
+								}
+							],
+							alsoKnownAs: ['at://alice.example.com']
+						});
+					}
+					return HttpResponse.json({});
 				})
 			);
 
@@ -261,24 +294,28 @@ describe('plc.ts', () => {
 		it('with missing service returns null', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
-					return HttpResponse.json({
-						id: did,
-						verificationMethod: [
-							{
-								id: `${did}#atproto`,
-								type: 'EcdsaSecp256k1RecoveryMethod2020',
-								controller: did,
-								publicKeyJwk: {
-									kty: 'ES',
-									crv: 'secp256k1',
-									x: 'SNXlNqL_MnFVXstKKyLrSW4X4B9P6yigV4FDKO90_9k',
-									y: 'cvjABaM59WNbLM4tJ7rOUf3L6r1fFk5r2f0aBQ8-j0A'
+				http.get('https://plc.directory/', ({ request }) => {
+					const url = new URL(request.url);
+					if (url.pathname === `/${did}`) {
+						return HttpResponse.json({
+							id: did,
+							verificationMethod: [
+								{
+									id: `${did}#atproto`,
+									type: 'EcdsaSecp256k1RecoveryMethod2020',
+									controller: did,
+									publicKeyJwk: {
+										kty: 'ES',
+										crv: 'secp256k1',
+										x: 'SNXlNqL_MnFVXstKKyLrSW4X4B9P6yigV4FDKO90_9k',
+										y: 'cvjABaM59WNbLM4tJ7rOUf3L6r1fFk5r2f0aBQ8-j0A'
+									}
 								}
-							}
-						],
-						alsoKnownAs: ['at://alice.example.com']
-					});
+							],
+							alsoKnownAs: ['at://alice.example.com']
+						});
+					}
+					return HttpResponse.json({});
 				})
 			);
 
@@ -291,8 +328,12 @@ describe('plc.ts', () => {
 		it('with network error returns null', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
-					return HttpResponse.error();
+				http.get('https://plc.directory/', ({ request }) => {
+					const url = new URL(request.url);
+					if (url.pathname === `/${did}`) {
+						return HttpResponse.error();
+					}
+					return HttpResponse.json({});
 				})
 			);
 
