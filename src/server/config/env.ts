@@ -7,21 +7,19 @@ import type { OAuthEnvironmentConfig } from '../types.js';
 export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
   const errors: string[] = [];
 
-  // Check required string fields are present and non-empty
-  if (!config.oauthDomain || typeof config.oauthDomain !== 'string' || config.oauthDomain.trim() === '') {
+  if (!config.oauthDomain?.trim()) {
     errors.push('oauthDomain is required and must be a non-empty string');
   }
-  if (!config.oauthClientName || typeof config.oauthClientName !== 'string' || config.oauthClientName.trim() === '') {
+  if (!config.oauthClientName?.trim()) {
     errors.push('oauthClientName is required and must be a non-empty string');
   }
-  if (!config.oauthScopes || typeof config.oauthScopes !== 'string' || config.oauthScopes.trim() === '') {
+  if (!config.oauthScopes?.trim()) {
     errors.push('oauthScopes is required and must be a non-empty string');
   }
-  if (!config.pdsUrl || typeof config.pdsUrl !== 'string' || config.pdsUrl.trim() === '') {
+  if (!config.pdsUrl?.trim()) {
     errors.push('pdsUrl is required and must be a non-empty string');
   }
 
-  // Validate oauthDomain format (domain regex)
   if (config.oauthDomain) {
     const domainRegex = /^(?!:\/\/)([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
     if (!domainRegex.test(config.oauthDomain)) {
@@ -29,7 +27,6 @@ export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
     }
   }
 
-  // Validate pdsUrl is a valid URL
   if (config.pdsUrl) {
     let url: URL | null = null;
     try {
@@ -39,14 +36,12 @@ export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
     }
 
     if (url && url.protocol !== 'https:') {
-      // In production (isDev=false), https is required
       if (!config.isDev) {
         errors.push('pdsUrl must use https protocol in production');
       }
     }
   }
 
-  // In production, reject localhost/127.0.0.1 in pdsUrl and oauthDomain
   if (!config.isDev) {
     const localhostPatterns = [/localhost$/i, /127\.0\.0\.1$/];
 
@@ -57,8 +52,8 @@ export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
         if (localhostPatterns.some((pattern) => pattern.test(host))) {
           errors.push('pdsUrl cannot contain localhost or 127.0.0.1 in production');
         }
-      } catch {
-        // URL validation already caught, skip
+      } catch (_) {
+        void _;
       }
     }
 
@@ -69,7 +64,6 @@ export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
     }
   }
 
-  // Validate oauthJwk format if provided (base64 encoded strings)
   if (config.oauthJwk !== undefined) {
     const jwks = Array.isArray(config.oauthJwk) ? config.oauthJwk : [config.oauthJwk];
     for (let i = 0; i < jwks.length; i++) {
@@ -77,7 +71,6 @@ export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
       if (typeof jwk !== 'string' || jwk.trim() === '') {
         errors.push(`oauthJwk[${i}] must be a non-empty base64 encoded string`);
       } else {
-        // Basic base64 validation (check for valid characters)
         const base64Regex = /^[A-Za-z0-9+/]+=*$/;
         if (!base64Regex.test(jwk)) {
           errors.push(`oauthJwk[${i}] is not a valid base64 encoded string`);
@@ -94,37 +87,6 @@ export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
   }
 }
 
-/**
- * Example implementation showing how consumers should load config from environment.
- * Replace this with your own implementation that fits your application's config loading pattern.
- *
- * @example
- * Environment variables:
- * ```bash
- * # Required
- * OAUTH_DOMAIN=bsky.app
- * OAUTH_CLIENT_NAME=My App
- * OAUTH_SCOPES=atproto email
- * PDS_URL=https://bsky.social
- *
- * # Optional - Confidential client authentication
- * OAUTH_JWK=base64_encoded_jwk
- *
- * # Optional - Legal URIs
- * OAUTH_TOS_URI=https://example.com/tos
- * OAUTH_POLICY_URI=https://example.com/privacy
- *
- * # Optional - Development settings
- * FALLBACK_DID=did:plc:abc123
- * FALLBACK_DOMAIN=example.com
- * DEV_HOST=127.0.0.1
- * DEV_PORT=5180
- *
- * # Optional - Custom service URLs
- * PLC_DIRECTORY_URL=https://plc.directory
- * PUBLIC_API_URL=https://public.api.bsky.app
- * ```
- */
 export function loadEnvConfig(): OAuthEnvironmentConfig {
   const config: OAuthEnvironmentConfig = {
     oauthDomain: process.env.OAUTH_DOMAIN ?? '',
@@ -134,7 +96,6 @@ export function loadEnvConfig(): OAuthEnvironmentConfig {
     isDev: process.env.NODE_ENV === 'development',
   };
 
-  // Optional fields
   if (process.env.OAUTH_JWK) {
     config.oauthJwk = process.env.OAUTH_JWK;
   }
