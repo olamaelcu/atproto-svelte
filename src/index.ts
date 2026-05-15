@@ -9,7 +9,6 @@ export type {
 
 export { createOAuthClient } from './server/oauth/client';
 export { createSessionManager } from './server/session/manager';
-export { resolveHandle, resolveDid, resolveIdentity } from './server/identity/resolve';
 
 export { createIdentityQuery, createResolveDidQuery, createResolveHandleQuery } from './client/identity';
 export { createProfileQuery } from './client/profile';
