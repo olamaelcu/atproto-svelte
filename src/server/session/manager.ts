@@ -47,7 +47,13 @@ export class SessionManager {
 
     const decoded = this.userCodec.decode(token);
     if (!decoded) {
-      await this.deleteSession(event);
+      event.cookies.set(this.cookieConfig.name, '', {
+        httpOnly: this.cookieConfig.httpOnly,
+        path: this.cookieConfig.path,
+        secure: this.cookieConfig.secure,
+        sameSite: 'strict',
+        maxAge: 0
+      });
       return { ...NULL_SESSION };
     }
 

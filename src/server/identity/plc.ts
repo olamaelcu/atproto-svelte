@@ -22,7 +22,7 @@ export interface PlcDidDocument {
 
 export async function fetchDidDocument(did: string, plcDirectoryUrl?: string): Promise<PlcDidDocument> {
   const baseUrl = plcDirectoryUrl ?? 'https://plc.directory';
-  const response = await fetch(`${baseUrl}/${did}`, {
+  const response = await fetch(`${baseUrl}/${encodeURIComponent(did)}`, {
     headers: {
       Accept: 'application/json'
     }

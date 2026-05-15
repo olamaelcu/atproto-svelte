@@ -2,6 +2,7 @@ import { resolveTxt } from 'dns';
 import { fetchDidDocument, extractSigningKey, extractHandleFromAlsoKnownAs, type PlcDidDocument } from './plc.js';
 import type { Identity } from '../../types/index.js';
 import { DEFAULT_PLC_DIRECTORY_URL } from '../constants.js';
+import { validateHandle } from './validate.js';
 
 export async function resolveHandle(handle: string, plcDirectoryUrl?: string): Promise<Identity> {
   const domain = handle.startsWith('did:') ? null : handle;

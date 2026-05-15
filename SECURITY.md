@@ -31,8 +31,9 @@ State management delegates to `@atproto/oauth-client-node`, which handles CSRF p
 Session tokens are hashed with SHA-256 before storage:
 
 ```typescript
-import { hashToken } from '@olamaelcu/atproto-svelte/server';
-const storedHash = hashToken(rawToken);
+import { TokenCodec } from '@olamaelcu/atproto-svelte/server';
+const codec = new TokenCodec(secretKey);
+const storedHash = codec.hash(token);
 ```
 
 ### Signing
