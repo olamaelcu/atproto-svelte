@@ -68,7 +68,6 @@ export interface ValidatedSession {
 export interface SessionTokenConfig {
   secret: string;
   expiryMs: number;
-  renewalThresholdMs: number;
 }
 
 export interface CookieConfig {

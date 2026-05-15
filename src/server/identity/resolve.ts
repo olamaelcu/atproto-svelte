@@ -47,6 +47,11 @@ async function resolveTxtRecord(domain: string): Promise<string | null> {
 }
 
 async function resolveWellKnown(handle: string): Promise<string | null> {
+  const validation = validateHandle(handle);
+  if (!validation.valid) {
+    return null;
+  }
+
   try {
     const url = handle.startsWith('https://') ? handle : `https://${handle}`;
     const wellKnownUrl = `${url}/.well-known/atproto-did`;

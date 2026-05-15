@@ -12,17 +12,18 @@ import type {
 } from '../types.js';
 
 function decodeBase64IfNeeded(input: string): string {
-  const base64Regex = /^[A-Za-z0-9+/=]+$/;
-  if (base64Regex.test(input)) {
-    const decoded = Buffer.from(input, 'base64').toString('utf-8');
+  try {
+    JSON.parse(input);
+    return input;
+  } catch {
     try {
+      const decoded = Buffer.from(input, 'base64').toString('utf-8');
       JSON.parse(decoded);
       return decoded;
     } catch {
       return input;
     }
   }
-  return input;
 }
 
 function getDevUrl(config: OAuthEnvironmentConfig): string {

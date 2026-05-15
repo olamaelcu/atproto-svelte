@@ -27,7 +27,7 @@ const NULL_SESSION: ValidatedSession = {
 export class SessionManager {
   private readonly oauthClient: NodeOAuthClient;
   private readonly userCodec: TokenCodec;
-  private readonly tokenConfig: { secret: string; expiryMs: number; renewalThresholdMs: number };
+  private readonly tokenConfig: { secret: string; expiryMs: number };
   private readonly cookieConfig: CookieConfig;
   private readonly userStore: UserSessionStore;
   private readonly getServiceUrl?: (did: string) => Promise<string | undefined>;
