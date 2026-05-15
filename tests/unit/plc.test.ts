@@ -17,7 +17,7 @@ describe('plc.ts', () => {
 		it('with valid DID returns DID document object', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did}`), () => {
+				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
 					return HttpResponse.json({
 						'@context': ['https://www.w3.org/ns/did/v1'],
 						id: did,
@@ -58,7 +58,7 @@ describe('plc.ts', () => {
 		it('with missing verificationMethod returns document with null signingKey', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did}`), () => {
+				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
 					return HttpResponse.json({
 						id: did,
 						service: [
@@ -82,7 +82,7 @@ describe('plc.ts', () => {
 		it('with missing service array returns document with null pdsUrl', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did}`), () => {
+				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
 					return HttpResponse.json({
 						id: did,
 						verificationMethod: [
@@ -105,7 +105,7 @@ describe('plc.ts', () => {
 
 			const { fetchDidDocument, fetchPdsUrl } = await import('../../src/server/identity/plc.js');
 			const doc = await fetchDidDocument(did);
-			const pdsUrl = await fetchPdsUrl(did);
+			const pdsUrl = await fetchPdsUrl(doc.id);
 
 			expect(pdsUrl).toBeNull();
 		});
@@ -113,7 +113,7 @@ describe('plc.ts', () => {
 		it('with missing alsoKnownAs returns document with null handle', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did}`), () => {
+				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
 					return HttpResponse.json({
 						id: did,
 						verificationMethod: [
@@ -149,7 +149,7 @@ describe('plc.ts', () => {
 		it('with Secp256k1 key returns null for signingKey', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did}`), () => {
+				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
 					return HttpResponse.json({
 						id: did,
 						verificationMethod: [
@@ -186,7 +186,7 @@ describe('plc.ts', () => {
 		it('with Ed25519 key returns the key', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did}`), () => {
+				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
 					return HttpResponse.json({
 						id: did,
 						verificationMethod: [
@@ -224,7 +224,7 @@ describe('plc.ts', () => {
 		it('with valid service entry returns the endpoint URL', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did}`), () => {
+				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
 					return HttpResponse.json({
 						id: did,
 						verificationMethod: [
@@ -261,7 +261,7 @@ describe('plc.ts', () => {
 		it('with missing service returns null', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did}`), () => {
+				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
 					return HttpResponse.json({
 						id: did,
 						verificationMethod: [
@@ -291,7 +291,7 @@ describe('plc.ts', () => {
 		it('with network error returns null', async () => {
 			const did = 'did:plc:abc123def456';
 			server.use(
-				http.get(new RegExp(`https://plc\\.directory/${did}`), () => {
+				http.get(new RegExp(`https://plc\\.directory/${did.replace(/:/g, '\\:')}`), () => {
 					return HttpResponse.error();
 				})
 			);
@@ -304,7 +304,7 @@ describe('plc.ts', () => {
 	});
 
 	describe('extractSigningKey', () => {
-		it('with Ed25519 key (crv === Ed25519) returns the key', () => {
+		it('with Ed25519 key (crv === Ed25519) returns the key', async () => {
 			const doc = {
 				id: 'did:plc:abc123def456',
 				verificationMethod: [
@@ -323,13 +323,13 @@ describe('plc.ts', () => {
 				alsoKnownAs: []
 			};
 
-			const { extractSigningKey } = require('../../src/server/identity/plc.js');
+			const { extractSigningKey } = await import('../../src/server/identity/plc.js');
 			const key = extractSigningKey(doc);
 
 			expect(key).toBe('did:key:zVCFIqFzKrB8YBDm2hkJVfMGEpH2wQS2aZ7f2k3F9VZw');
 		});
 
-		it('with Secp256k1 key (crv === secp256k1) returns null', () => {
+		it('with Secp256k1 key (crv === secp256k1) returns null', async () => {
 			const doc = {
 				id: 'did:plc:abc123def456',
 				verificationMethod: [
@@ -349,13 +349,13 @@ describe('plc.ts', () => {
 				alsoKnownAs: []
 			};
 
-			const { extractSigningKey } = require('../../src/server/identity/plc.js');
+			const { extractSigningKey } = await import('../../src/server/identity/plc.js');
 			const key = extractSigningKey(doc);
 
 			expect(key).toBeNull();
 		});
 
-		it('with no verificationMethod returns null', () => {
+		it('with no verificationMethod returns null', async () => {
 			const doc = {
 				id: 'did:plc:abc123def456',
 				verificationMethod: [],
@@ -363,13 +363,13 @@ describe('plc.ts', () => {
 				alsoKnownAs: []
 			};
 
-			const { extractSigningKey } = require('../../src/server/identity/plc.js');
+			const { extractSigningKey } = await import('../../src/server/identity/plc.js');
 			const key = extractSigningKey(doc);
 
 			expect(key).toBeNull();
 		});
 
-		it('with multibase key returns the did:key', () => {
+		it('with multibase key returns the did:key', async () => {
 			const doc = {
 				id: 'did:plc:abc123def456',
 				verificationMethod: [
@@ -384,7 +384,7 @@ describe('plc.ts', () => {
 				alsoKnownAs: []
 			};
 
-			const { extractSigningKey } = require('../../src/server/identity/plc.js');
+			const { extractSigningKey } = await import('../../src/server/identity/plc.js');
 			const key = extractSigningKey(doc);
 
 			expect(key).toBe('did:key:zQmT9YQgF8vpcZrApZfFEiW4ibV4d4X8zM1WkH6gHqR3pF');
@@ -392,7 +392,7 @@ describe('plc.ts', () => {
 	});
 
 	describe('extractHandleFromAlsoKnownAs', () => {
-		it('with at:// handle returns the handle string', () => {
+		it('with at:// handle returns the handle string', async () => {
 			const doc = {
 				id: 'did:plc:abc123def456',
 				verificationMethod: [],
@@ -400,13 +400,13 @@ describe('plc.ts', () => {
 				alsoKnownAs: ['at://alice.example.com']
 			};
 
-			const { extractHandleFromAlsoKnownAs } = require('../../src/server/identity/plc.js');
+			const { extractHandleFromAlsoKnownAs } = await import('../../src/server/identity/plc.js');
 			const handle = extractHandleFromAlsoKnownAs(doc);
 
 			expect(handle).toBe('alice.example.com');
 		});
 
-		it('with at://handle/path returns just the handle', () => {
+		it('with at://handle/path returns just the handle', async () => {
 			const doc = {
 				id: 'did:plc:abc123def456',
 				verificationMethod: [],
@@ -414,13 +414,13 @@ describe('plc.ts', () => {
 				alsoKnownAs: ['at://alice.example.com/app.bsky.feed.post/123']
 			};
 
-			const { extractHandleFromAlsoKnownAs } = require('../../src/server/identity/plc.js');
+			const { extractHandleFromAlsoKnownAs } = await import('../../src/server/identity/plc.js');
 			const handle = extractHandleFromAlsoKnownAs(doc);
 
 			expect(handle).toBe('alice.example.com');
 		});
 
-		it('with no alsoKnownAs returns null', () => {
+		it('with no alsoKnownAs returns null', async () => {
 			const doc = {
 				id: 'did:plc:abc123def456',
 				verificationMethod: [],
@@ -428,13 +428,13 @@ describe('plc.ts', () => {
 				alsoKnownAs: []
 			};
 
-			const { extractHandleFromAlsoKnownAs } = require('../../src/server/identity/plc.js');
+			const { extractHandleFromAlsoKnownAs } = await import('../../src/server/identity/plc.js');
 			const handle = extractHandleFromAlsoKnownAs(doc);
 
 			expect(handle).toBeNull();
 		});
 
-		it('with non-at:// entries returns null', () => {
+		it('with non-at:// entries returns null', async () => {
 			const doc = {
 				id: 'did:plc:abc123def456',
 				verificationMethod: [],
@@ -442,7 +442,7 @@ describe('plc.ts', () => {
 				alsoKnownAs: ['https://example.com/profile']
 			};
 
-			const { extractHandleFromAlsoKnownAs } = require('../../src/server/identity/plc.js');
+			const { extractHandleFromAlsoKnownAs } = await import('../../src/server/identity/plc.js');
 			const handle = extractHandleFromAlsoKnownAs(doc);
 
 			expect(handle).toBeNull();

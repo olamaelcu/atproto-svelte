@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 
 const mockCreateQuery = vi.fn(() => ({ queryKey: [], data: undefined, isLoading: false }));
-const mockQueryClient = vi.fn(() => ({
-	getDefaultOptions: () => ({ queries: {} })
+
+let capturedOptions: any = null;
+const mockQueryClient = vi.fn((options?: any) => ({
+	getDefaultOptions: () => capturedOptions ?? options
 }));
 
 vi.mock('@tanstack/svelte-query', () => ({
