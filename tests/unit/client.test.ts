@@ -2,19 +2,24 @@ import { describe, it, expect, vi } from 'vitest';
 
 const mockCreateQuery = vi.fn(() => ({ queryKey: [], data: undefined, isLoading: false }));
 
-let capturedOptions: any = null;
-const mockQueryClient = vi.fn((options?: any) => ({
-	getDefaultOptions: () => capturedOptions ?? options
-}));
-
-vi.mock('@tanstack/svelte-query', () => ({
-	createQuery: mockCreateQuery,
-	QueryClient: mockQueryClient
-}));
+let mockOptions: any = null;
+vi.mock('@tanstack/svelte-query', () => {
+	const MockQueryClient = vi.fn().mockImplementation((options) => {
+		mockOptions = options;
+		return {
+			getDefaultOptions: () => options?.defaultOptions ?? {}
+		};
+	});
+	return {
+		createQuery: mockCreateQuery,
+		QueryClient: MockQueryClient
+	};
+});
 
 describe('client/identity', () => {
 	describe('createIdentityQuery', () => {
 		it('returns query with correct queryKey for identifier', async () => {
+			mockOptions = null;
 			const { createIdentityQuery } = await import('../../src/client/identity.js');
 			const identifier = 'handle.example.com';
 
