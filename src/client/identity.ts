@@ -1,4 +1,5 @@
 import { createQuery, QueryClient } from '@tanstack/svelte-query';
+import type { CreateQueryResult } from '@tanstack/svelte-query';
 import { Agent } from '@atproto/api';
 import type { Identity } from '../types/index.js';
 import {
@@ -23,7 +24,7 @@ export const identityClient = new QueryClient({
 	}
 });
 
-export function createIdentityQuery(identifier: string, publicApiUrl?: string): ReturnType<typeof createQuery<Identity>> {
+export function createIdentityQuery(identifier: string, publicApiUrl?: string): CreateQueryResult<Identity, Error> {
 	return createQuery({
 		queryKey: ['identity', 'resolve', identifier],
 		queryFn: () => resolveIdentity(identifier, publicApiUrl),
@@ -32,7 +33,7 @@ export function createIdentityQuery(identifier: string, publicApiUrl?: string): 
 	});
 }
 
-export function createResolveHandleQuery(handle: string, publicApiUrl?: string): ReturnType<typeof createQuery<Identity>> {
+export function createResolveHandleQuery(handle: string, publicApiUrl?: string): CreateQueryResult<Identity, Error> {
 	return createQuery({
 		queryKey: ['identity', 'handle', handle],
 		queryFn: () => resolveHandle(handle, publicApiUrl),
@@ -41,7 +42,7 @@ export function createResolveHandleQuery(handle: string, publicApiUrl?: string):
 	});
 }
 
-export function createResolveDidQuery(did: string, publicApiUrl?: string): ReturnType<typeof createQuery<Identity>> {
+export function createResolveDidQuery(did: string, publicApiUrl?: string): CreateQueryResult<Identity, Error> {
 	return createQuery({
 		queryKey: ['identity', 'did', did],
 		queryFn: () => resolveDid(did, publicApiUrl),
