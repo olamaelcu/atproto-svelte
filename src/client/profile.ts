@@ -4,12 +4,12 @@ import type { Profile } from '../types/index.js';
 import { PROFILE_STALE_TIME_MS, PROFILE_GC_TIME_MS, DEFAULT_PUBLIC_API_URL } from '../constants.js';
 
 export function createProfileQuery(did: string, agent?: Agent, publicApiUrl?: string) {
-	return createQuery({
+	return createQuery(() => ({
 		queryKey: ['identity', 'profile', did],
 		queryFn: () => fetchProfile(did, agent, publicApiUrl),
 		staleTime: PROFILE_STALE_TIME_MS,
 		gcTime: PROFILE_GC_TIME_MS
-	});
+	}));
 }
 
 function fetchProfile(did: string, agent?: Agent, publicApiUrl?: string): Promise<Profile> {

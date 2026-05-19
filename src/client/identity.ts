@@ -87,30 +87,30 @@ export function createIdentityClient(options?: QueryClientConfig): QueryClient {
 }
 
 export function createIdentityQuery(identifier: string, publicApiUrl?: string): CreateQueryResult<Identity, Error> {
-	return createQuery({
+	return createQuery(() => ({
 		queryKey: ['identity', 'resolve', identifier],
 		queryFn: () => resolveIdentity(identifier, publicApiUrl),
 		staleTime: IDENTITY_STALE_TIME_MS,
 		gcTime: IDENTITY_GC_TIME_MS
-	});
+	}));
 }
 
 export function createResolveHandleQuery(handle: string, publicApiUrl?: string): CreateQueryResult<Identity, Error> {
-	return createQuery({
+	return createQuery(() => ({
 		queryKey: ['identity', 'handle', handle],
 		queryFn: () => resolveHandle(handle, publicApiUrl),
 		staleTime: IDENTITY_STALE_TIME_MS,
 		gcTime: IDENTITY_GC_TIME_MS
-	});
+	}));
 }
 
 export function createResolveDidQuery(did: string, publicApiUrl?: string): CreateQueryResult<Identity, Error> {
-	return createQuery({
+	return createQuery(() => ({
 		queryKey: ['identity', 'did', did],
 		queryFn: () => resolveDid(did, publicApiUrl),
 		staleTime: DID_STALE_TIME_MS,
 		gcTime: DID_GC_TIME_MS
-	});
+	}));
 }
 
 function resolveHandle(handle: string, publicApiUrl?: string): Promise<Identity> {

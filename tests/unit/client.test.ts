@@ -3,13 +3,13 @@ import { describe, it, expect, vi } from 'vitest';
 const mockCreateQuery = vi.fn(() => ({ queryKey: [], data: undefined, isLoading: false }));
 
 let mockOptions: any = null;
+
+function MockQueryClient(options?: any) {
+	mockOptions = options;
+	this.getDefaultOptions = () => options?.defaultOptions ?? {};
+}
+
 vi.mock('@tanstack/svelte-query', () => {
-	const MockQueryClient = vi.fn().mockImplementation((options) => {
-		mockOptions = options;
-		return {
-			getDefaultOptions: () => options?.defaultOptions ?? {}
-		};
-	});
 	return {
 		createQuery: mockCreateQuery,
 		QueryClient: MockQueryClient
@@ -26,10 +26,11 @@ describe('client/identity', () => {
 			createIdentityQuery(identifier);
 
 			expect(mockCreateQuery).toHaveBeenCalledWith(
-				expect.objectContaining({
-					queryKey: ['identity', 'resolve', identifier]
-				})
+				expect.any(Function)
 			);
+			const queryFn = mockCreateQuery.mock.calls[mockCreateQuery.mock.calls.length - 1][0];
+			const options = queryFn();
+			expect(options.queryKey).toEqual(['identity', 'resolve', identifier]);
 		});
 
 		it('when identifier starts with did: delegates to resolveDid', async () => {
@@ -39,10 +40,11 @@ describe('client/identity', () => {
 			createIdentityQuery(didIdentifier);
 
 			expect(mockCreateQuery).toHaveBeenCalledWith(
-				expect.objectContaining({
-					queryKey: ['identity', 'resolve', didIdentifier]
-				})
+				expect.any(Function)
 			);
+			const queryFn = mockCreateQuery.mock.calls[mockCreateQuery.mock.calls.length - 1][0];
+			const options = queryFn();
+			expect(options.queryKey).toEqual(['identity', 'resolve', didIdentifier]);
 		});
 
 		it('when identifier is a handle delegates to resolveHandle', async () => {
@@ -52,10 +54,11 @@ describe('client/identity', () => {
 			createIdentityQuery(handle);
 
 			expect(mockCreateQuery).toHaveBeenCalledWith(
-				expect.objectContaining({
-					queryKey: ['identity', 'resolve', handle]
-				})
+				expect.any(Function)
 			);
+			const queryFn = mockCreateQuery.mock.calls[mockCreateQuery.mock.calls.length - 1][0];
+			const options = queryFn();
+			expect(options.queryKey).toEqual(['identity', 'resolve', handle]);
 		});
 	});
 
@@ -67,10 +70,11 @@ describe('client/identity', () => {
 			createResolveHandleQuery(handle);
 
 			expect(mockCreateQuery).toHaveBeenCalledWith(
-				expect.objectContaining({
-					queryKey: ['identity', 'handle', handle]
-				})
+				expect.any(Function)
 			);
+			const queryFn = mockCreateQuery.mock.calls[mockCreateQuery.mock.calls.length - 1][0];
+			const options = queryFn();
+			expect(options.queryKey).toEqual(['identity', 'handle', handle]);
 		});
 	});
 
@@ -82,10 +86,11 @@ describe('client/identity', () => {
 			createResolveDidQuery(did);
 
 			expect(mockCreateQuery).toHaveBeenCalledWith(
-				expect.objectContaining({
-					queryKey: ['identity', 'did', did]
-				})
+				expect.any(Function)
 			);
+			const queryFn = mockCreateQuery.mock.calls[mockCreateQuery.mock.calls.length - 1][0];
+			const options = queryFn();
+			expect(options.queryKey).toEqual(['identity', 'did', did]);
 		});
 	});
 
@@ -113,10 +118,11 @@ describe('client/profile', () => {
 			createProfileQuery(did);
 
 			expect(mockCreateQuery).toHaveBeenCalledWith(
-				expect.objectContaining({
-					queryKey: ['identity', 'profile', did]
-				})
+				expect.any(Function)
 			);
+			const queryFn = mockCreateQuery.mock.calls[mockCreateQuery.mock.calls.length - 1][0];
+			const options = queryFn();
+			expect(options.queryKey).toEqual(['identity', 'profile', did]);
 		});
 
 		it('returns query with correct staleTime and gcTime', async () => {
@@ -126,11 +132,12 @@ describe('client/profile', () => {
 			createProfileQuery(did);
 
 			expect(mockCreateQuery).toHaveBeenCalledWith(
-				expect.objectContaining({
-					staleTime: 1000 * 60 * 5,
-					gcTime: 1000 * 60 * 30
-				})
+				expect.any(Function)
 			);
+			const queryFn = mockCreateQuery.mock.calls[mockCreateQuery.mock.calls.length - 1][0];
+			const options = queryFn();
+			expect(options.staleTime).toBe(1000 * 60 * 5);
+			expect(options.gcTime).toBe(1000 * 60 * 30);
 		});
 	});
 });
