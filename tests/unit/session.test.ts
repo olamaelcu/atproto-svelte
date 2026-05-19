@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { TokenRefreshError } from '@atproto/oauth-client-node';
 import { TokenCodec } from '../../src/server/types.js';
 import { createSessionManager, SessionManager } from '../../src/server/session/manager.js';
 
@@ -211,6 +212,108 @@ describe('SessionManager', () => {
 
       const result = await manager.validateSession(mockEvent);
       expect(result.did).toBeNull();
+    });
+
+    it('should return authenticated agent when restore succeeds', async () => {
+      const mockOAuthSession = {
+        did: 'did:plc:test123',
+        serviceUrl: 'https://pds.example.com'
+      };
+      const mockClient = {
+        restore: vi.fn().mockResolvedValue(mockOAuthSession)
+      };
+
+      const token = codec.encode(new Uint8Array(20).fill(1));
+      const tokenHash = codec.hash(token);
+      mockStore.sessions.set(tokenHash, {
+        id: tokenHash,
+        did: 'did:plc:test123',
+        handle: 'test.handle',
+        email: 'test@example.com',
+        serviceUrl: 'https://pds.example.com',
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 86400000)
+      });
+      mockEvent.cookies.get.mockReturnValue(token);
+
+      manager = new SessionManager({
+        oauthClient: mockClient,
+        userCodec: codec,
+        tokenConfig,
+        cookieConfig,
+        userStore: mockStore
+      });
+
+      const result = await manager.validateSession(mockEvent);
+      expect(result.atpAgent).not.toBeNull();
+      expect(result.did).toBe('did:plc:test123');
+      expect(result.handle).toBe('test.handle');
+    });
+
+    it('should clear session when TokenRefreshError is thrown', async () => {
+      const refreshErr = Object.setPrototypeOf(new Error('token refresh'), TokenRefreshError.prototype);
+      const mockClient = {
+        restore: vi.fn().mockRejectedValue(refreshErr)
+      };
+
+      const token = codec.encode(new Uint8Array(20).fill(2));
+      const tokenHash = codec.hash(token);
+      mockStore.sessions.set(tokenHash, {
+        id: tokenHash,
+        did: 'did:plc:refresh',
+        handle: 'refresh.handle',
+        email: 'refresh@example.com',
+        serviceUrl: 'https://pds.example.com',
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 86400000)
+      });
+      mockEvent.cookies.get.mockReturnValue(token);
+
+      manager = new SessionManager({
+        oauthClient: mockClient,
+        userCodec: codec,
+        tokenConfig,
+        cookieConfig,
+        userStore: mockStore
+      });
+
+      const result = await manager.validateSession(mockEvent);
+      expect(result.atpAgent).toBeNull();
+      expect(result.did).toBeNull();
+      expect(mockStore.sessions.has(tokenHash)).toBe(false);
+    });
+
+    it('should return atpAgent: null but preserve session data on non-TokenRefreshError', async () => {
+      const mockClient = {
+        restore: vi.fn().mockRejectedValue(new Error('Some other error'))
+      };
+
+      const token = codec.encode(new Uint8Array(20).fill(3));
+      const tokenHash = codec.hash(token);
+      mockStore.sessions.set(tokenHash, {
+        id: tokenHash,
+        did: 'did:plc:other',
+        handle: 'other.handle',
+        email: 'other@example.com',
+        serviceUrl: 'https://pds.example.com',
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 86400000)
+      });
+      mockEvent.cookies.get.mockReturnValue(token);
+
+      manager = new SessionManager({
+        oauthClient: mockClient,
+        userCodec: codec,
+        tokenConfig,
+        cookieConfig,
+        userStore: mockStore
+      });
+
+      const result = await manager.validateSession(mockEvent);
+      expect(result.atpAgent).toBeNull();
+      expect(result.did).toBe('did:plc:other');
+      expect(result.handle).toBe('other.handle');
+      expect(result.email).toBe('other@example.com');
     });
   });
 

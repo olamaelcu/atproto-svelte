@@ -72,12 +72,8 @@ export class SessionManager {
     }
 
     try {
-      await this.oauthClient.restore(session.did);
-      const pdsUrl = serviceUrl ?? session.serviceUrl;
-      if (!pdsUrl) {
-        return { ...NULL_SESSION };
-      }
-      const agent = new Agent(pdsUrl);
+      const oAuthSession = await this.oauthClient.restore(session.did);
+      const agent = new Agent(oAuthSession);
       return {
         atpAgent: agent,
         did: session.did,
