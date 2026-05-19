@@ -87,7 +87,7 @@ export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
   }
 }
 
-export function loadEnvConfig(): OAuthEnvironmentConfig {
+export function loadEnvConfig(overrides?: Partial<OAuthEnvironmentConfig>): OAuthEnvironmentConfig {
   const config: OAuthEnvironmentConfig = {
     oauthDomain: process.env.OAUTH_DOMAIN ?? '',
     oauthClientName: process.env.OAUTH_CLIENT_NAME ?? '',
@@ -123,6 +123,10 @@ export function loadEnvConfig(): OAuthEnvironmentConfig {
   }
   if (process.env.PUBLIC_API_URL) {
     config.publicApiUrl = process.env.PUBLIC_API_URL;
+  }
+
+  if (overrides) {
+    Object.assign(config, overrides);
   }
 
   validateEnvConfig(config);

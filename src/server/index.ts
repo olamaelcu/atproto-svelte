@@ -11,6 +11,8 @@ export { validateHandle, validateDid, validateIdentity } from './identity/valida
 export { loadEnvConfig, validateEnvConfig } from './config/env.js';
 export { fetchProfile } from './profile.js';
 
+export { HmacTokenCodec } from './session/token-codec.js';
+
 export type {
   OAuthEnvironmentConfig,
   OAuthStateStore,
@@ -21,5 +23,6 @@ export type {
   ValidatedSession,
   SessionManagerConfig,
   CookieConfig,
-  SessionTokenConfig
+  SessionTokenConfig,
+  TokenCodec
 } from './types.js';

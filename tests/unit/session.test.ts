@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TokenRefreshError } from '@atproto/oauth-client-node';
-import { TokenCodec } from '../../src/server/types.js';
+import { HmacTokenCodec } from '../../src/server/session/token-codec.js';
 import { createSessionManager, SessionManager } from '../../src/server/session/manager.js';
 
 const MOCK_SECRET = 'test-secret-key-for-hmac';
@@ -37,10 +37,10 @@ class MockUserSessionStore {
 }
 
 describe('TokenCodec', () => {
-  let codec: TokenCodec;
+  let codec: HmacTokenCodec;
 
   beforeEach(() => {
-    codec = new TokenCodec(MOCK_SECRET);
+    codec = new HmacTokenCodec(MOCK_SECRET);
   });
 
   describe('encode', () => {
@@ -99,7 +99,7 @@ describe('TokenCodec', () => {
       const randomBytes = new Uint8Array(20);
       crypto.getRandomValues(randomBytes);
       const token = codec.encode(randomBytes);
-      const otherCodec = new TokenCodec('different-secret');
+      const otherCodec = new HmacTokenCodec('different-secret');
       const decoded = otherCodec.decode(token);
       expect(decoded).toBeNull();
     });
@@ -138,7 +138,7 @@ describe('TokenCodec', () => {
 
 describe('SessionManager', () => {
   let mockStore: MockUserSessionStore;
-  let codec: TokenCodec;
+  let codec: HmacTokenCodec;
   let manager: SessionManager;
   let mockEvent: any;
 
@@ -158,7 +158,7 @@ describe('SessionManager', () => {
 
   beforeEach(() => {
     mockStore = new MockUserSessionStore();
-    codec = new TokenCodec(MOCK_SECRET);
+    codec = new HmacTokenCodec(MOCK_SECRET);
     mockEvent = {
       cookies: {
         get: vi.fn(),

@@ -1,10 +1,11 @@
 export { createSessionManager } from './manager.js';
+export { HmacTokenCodec } from './token-codec.js';
 export type { SessionManagerConfig } from '../types.js';
-export {
-  TokenCodec,
-  type UserSessionStore,
-  type UserSession,
-  type ValidatedSession,
-  type CookieConfig,
-  type SessionTokenConfig
+export type {
+  UserSessionStore,
+  UserSession,
+  ValidatedSession,
+  CookieConfig,
+  SessionTokenConfig,
+  TokenCodec
 } from '../types.js';
