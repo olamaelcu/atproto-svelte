@@ -1,5 +1,10 @@
 # @olamaelcu/atproto-svelte
 
+[![Open on npmx.dev](https://npmx.dev/api/registry/badge/version/@olamaelcu/atproto-svelte)](https://npmx.dev/package/@olamaelcu/atproto-svelte)
+[![Open on npmx.dev](https://npmx.dev/api/registry/badge/license/@olamaelcu/atproto-svelte)](https://npmx.dev/package/@olamaelcu/atproto-svelte)
+[![Open on npmx.dev](https://npmx.dev/api/registry/badge/size/@olamaelcu/atproto-svelte)](https://npmx.dev/package/@olamaelcu/atproto-svelte)
+[![Open on npmx.dev](https://npmx.dev/api/registry/badge/downloads-month/@olamaelcu/atproto-svelte)](https://npmx.dev/package/@olamaelcu/atproto-svelte)
+
 This library wraps ATProto OAuth functionality and identity resolution for use in SvelteKit applications. It handles the OAuth flow and provides cached queries for looking up handles, DIDs, and profiles through Tanstack Query.
 
 ## Features
