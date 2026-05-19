@@ -14,3 +14,7 @@ export { createIdentityQuery, createResolveDidQuery, createResolveHandleQuery } 
 export { createProfileQuery } from './client/profile';
 
 export { QueryClient } from '@tanstack/svelte-query';
+
+export { Agent } from './client';
+export { OAuthSession, TokenRefreshError, NodeOAuthClient, atprotoLoopbackClientMetadata } from './server';
+export type { AtpSessionData, XRPCError } from './client';

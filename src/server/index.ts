@@ -1,3 +1,9 @@
+export { NodeOAuthClient } from '@atproto/oauth-client-node';
+export { OAuthSession, TokenRefreshError } from '@atproto/oauth-client-node';
+export { atprotoLoopbackClientMetadata } from '@atproto/oauth-client-node';
+
+export type { AtpSessionData, XRPCError } from '@atproto/api';
+
 export { createOAuthClient } from './oauth/client';
 export { createSessionManager } from './session/manager';
 export { resolveHandle, resolveDid, resolveIdentity, verifyBidirectional } from './identity/resolve';
