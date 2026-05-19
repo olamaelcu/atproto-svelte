@@ -52,7 +52,7 @@
   },
   "peerDependencies": {
     "@sveltejs/kit": ">=2.5.0",
-    "@tanstack/svelte-query": "^5.0.0",
+    "@tanstack/svelte-query": "^6.0.0",
     "svelte": ">=5.25.0"
   },
   "dependencies": {
