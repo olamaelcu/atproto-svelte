@@ -1,4 +1,3 @@
-import { encodeBase32UpperCaseNoPadding, decodeBase32IgnorePadding } from '@oslojs/encoding';
 import type { Agent } from '@atproto/api';
 import type { NodeOAuthClient, OAuthSession } from '@atproto/oauth-client-node';
 

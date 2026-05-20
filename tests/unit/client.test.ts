@@ -2,24 +2,15 @@ import { describe, it, expect, vi } from 'vitest';
 
 const mockCreateQuery = vi.fn(() => ({ queryKey: [], data: undefined, isLoading: false }));
 
-let mockOptions: any = null;
-
-function MockQueryClient(options?: any) {
-	mockOptions = options;
-	this.getDefaultOptions = () => options?.defaultOptions ?? {};
-}
-
 vi.mock('@tanstack/svelte-query', () => {
 	return {
-		createQuery: mockCreateQuery,
-		QueryClient: MockQueryClient
+		createQuery: mockCreateQuery
 	};
 });
 
 describe('client/identity', () => {
 	describe('createIdentityQuery', () => {
 		it('returns query with correct queryKey for identifier', async () => {
-			mockOptions = null;
 			const { createIdentityQuery } = await import('../../src/client/identity.js');
 			const identifier = 'handle.example.com';
 
@@ -91,20 +82,6 @@ describe('client/identity', () => {
 			const queryFn = mockCreateQuery.mock.calls[mockCreateQuery.mock.calls.length - 1][0];
 			const options = queryFn();
 			expect(options.queryKey).toEqual(['identity', 'did', did]);
-		});
-	});
-
-	describe('identityClient', () => {
-		it('has correct default config', async () => {
-			const { identityClient } = await import('../../src/client/identity.js');
-
-			const defaultOptions = identityClient.getDefaultOptions();
-			const queriesConfig = defaultOptions.queries;
-
-			expect(queriesConfig?.staleTime).toBe(1000 * 60 * 10);
-			expect(queriesConfig?.gcTime).toBe(1000 * 60 * 60);
-			expect(queriesConfig?.refetchOnWindowFocus).toBe(false);
-			expect(queriesConfig?.retry).toBe(2);
 		});
 	});
 });

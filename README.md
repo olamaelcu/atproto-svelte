@@ -60,18 +60,16 @@ const sessionManager = createSessionManager({
 
 ```svelte
 <script lang="ts">
-  import { createIdentityQuery, identityClient } from "@olamaelcu/atproto-svelte/client";
-  import { QueryClientProvider } from "@tanstack/svelte-query";
+  import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
+  import { createIdentityQuery } from "@olamaelcu/atproto-svelte/client";
 
   let { children } = $props();
 
-  const identity = createQuery(() => ({
-    queryKey: ['identity', 'handle', 'beats.olamaelcu.net'],
-    queryFn: () => identityClient.resolveHandle('beats.olamaelcu.net')
-  }));
+  const queryClient = new QueryClient();
+  const identity = createIdentityQuery('handle.example.com');
 </script>
 
-<QueryClientProvider client={identityClient}>
+<QueryClientProvider client={queryClient}>
   {@render children()}
 </QueryClientProvider>
 ```
