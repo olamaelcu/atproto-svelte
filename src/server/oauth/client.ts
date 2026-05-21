@@ -49,10 +49,11 @@ async function loadJwk(config: OAuthEnvironmentConfig): Promise<Keyset | undefin
   if (!raw) return undefined;
   const json = Array.isArray(raw) ? raw : [raw];
   const decoded = json.map((jwk) => decodeBase64IfNeeded(jwk));
-  const parsed = decoded.map((j) => {
-    if (typeof j !== 'string') return j;
+  const parsed = decoded.flatMap((j) => {
+    if (typeof j !== 'string') return [j];
     try {
-      return JSON.parse(j);
+      const result = JSON.parse(j);
+      return Array.isArray(result) ? result : [result];
     } catch (err) {
       throw new Error(`Failed to parse JWK: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
     }
