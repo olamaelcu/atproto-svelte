@@ -11,7 +11,7 @@ import type {
   NodeSavedState
 } from '../types.js';
 
-function decodeBase64IfNeeded(input: string): string {
+export function decodeBase64IfNeeded(input: string): string {
   try {
     JSON.parse(input);
     return input;
@@ -44,7 +44,7 @@ function validateNonDevUrls(config: OAuthEnvironmentConfig, rootUrl: string, dev
   }
 }
 
-async function loadJwk(config: OAuthEnvironmentConfig): Promise<Keyset | undefined> {
+export async function loadJwk(config: OAuthEnvironmentConfig): Promise<Keyset | undefined> {
   const raw = config.oauthJwk;
   if (!raw) return undefined;
   const json = Array.isArray(raw) ? raw : [raw];

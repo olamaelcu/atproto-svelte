@@ -1,20 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
-import { JoseKey } from '@atproto/jwk-jose';
+import { describe, it, expect } from 'vitest';
 import { Keyset } from '@atproto/jwk';
-
-function decodeBase64IfNeeded(input: string): string {
-  const base64Regex = /^[A-Za-z0-9+/=]+$/;
-  if (base64Regex.test(input)) {
-    const decoded = Buffer.from(input, 'base64').toString('utf-8');
-    try {
-      JSON.parse(decoded);
-      return decoded;
-    } catch {
-      return input;
-    }
-  }
-  return input;
-}
+import { loadJwk, decodeBase64IfNeeded } from '../../src/server/oauth/client.js';
 
 function getDevUrl(config: { devHost?: string; devPort?: number }): string {
   const host = config.devHost ?? '127.0.0.1';
@@ -108,40 +94,6 @@ describe('validateNonDevUrls', () => {
   });
 });
 
-async function loadJwk(config: { oauthJwk?: string | string[] }): Promise<Keyset | undefined> {
-  const raw = config.oauthJwk;
-  if (!raw) return undefined;
-  const json = Array.isArray(raw) ? raw : [raw];
-  const decoded = json.map((jwk) => decodeBase64IfNeeded(jwk));
-  const parsed = decoded.flatMap((j) => {
-    if (typeof j !== 'string') return [j];
-    try {
-      const result = JSON.parse(j);
-      return Array.isArray(result) ? result : [result];
-    } catch (err) {
-      throw new Error(`Failed to parse JWK: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
-    }
-  });
-  for (const jwk of parsed) {
-    if (typeof jwk !== 'object' || jwk === null) {
-      throw new Error('JWK must be a plain object');
-    }
-    if (!jwk.kty) {
-      throw new Error('JWK missing required "kty" property');
-    }
-    const hasCurve = jwk.crv !== undefined;
-    const hasRsaParams = jwk.n !== undefined && jwk.e !== undefined;
-    if (!hasCurve && !hasRsaParams) {
-      throw new Error('JWK must have either "crv" (for EC/symmetric) or "n"/"e" (for RSA)');
-    }
-  }
-  const keys = await Promise.all(parsed.map((jwk) => JoseKey.fromJWK(jwk)));
-  for (const key of keys) {
-    Object.defineProperty(key.jwk, 'use', { value: 'sig', enumerable: true, writable: false });
-  }
-  return new Keyset(keys, ['ES256']);
-}
-
 describe('loadJwk', () => {
   it('should handle single base64-encoded JWK object', async () => {
     const jwk = { kty: 'EC', crv: 'P-256', x: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', y: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' };
@@ -187,5 +139,14 @@ describe('loadJwk', () => {
   it('should return undefined when oauthJwk is undefined', async () => {
     const result = await loadJwk({});
     expect(result).toBeUndefined();
+  });
+
+  it('should handle raw JSON JWK array string', async () => {
+    const jwk = { kty: 'EC', crv: 'P-256', x: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', y: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' };
+    const raw = JSON.stringify([jwk]);
+    const result = await loadJwk({ oauthJwk: raw });
+    expect(result).toBeInstanceOf(Keyset);
+    expect(result!.keys).toHaveLength(1);
+    expect(result!.keys[0].jwk.kty).toBe('EC');
   });
 });

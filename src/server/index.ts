@@ -4,7 +4,7 @@ export { atprotoLoopbackClientMetadata } from '@atproto/oauth-client-node';
 
 export type { AtpSessionData, XRPCError } from '@atproto/api';
 
-export { createOAuthClient } from './oauth/client';
+export { createOAuthClient, loadJwk, decodeBase64IfNeeded } from './oauth/client';
 export { createSessionManager } from './session/manager';
 export { resolveHandle, resolveDid, resolveIdentity, verifyBidirectional } from './identity/resolve';
 export { validateHandle, validateDid, validateIdentity } from './identity/validate.js';
