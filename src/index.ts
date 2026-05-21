@@ -10,8 +10,8 @@ export type {
 export { createOAuthClient } from './server/oauth/client';
 export { createSessionManager } from './server/session/manager';
 
-export { createIdentityQuery, createResolveDidQuery, createResolveHandleQuery } from './client/identity';
-export { createProfileQuery } from './client/profile';
+export { createIdentityQuery, createResolveDidQuery, createResolveHandleQuery } from './client/identity/index.js';
+export { createProfileQuery } from './client/profile/index.js';
 
 export { Agent } from './client';
 export { OAuthSession, TokenRefreshError, NodeOAuthClient, atprotoLoopbackClientMetadata } from './server';

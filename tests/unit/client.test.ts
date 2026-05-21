@@ -11,7 +11,7 @@ vi.mock('@tanstack/svelte-query', () => {
 describe('client/identity', () => {
 	describe('createIdentityQuery', () => {
 		it('returns query with correct queryKey for identifier', async () => {
-			const { createIdentityQuery } = await import('../../src/client/identity.js');
+			const { createIdentityQuery } = await import('../../src/client/identity/index.js');
 			const identifier = 'handle.example.com';
 
 			createIdentityQuery(identifier);
@@ -25,7 +25,7 @@ describe('client/identity', () => {
 		});
 
 		it('when identifier starts with did: delegates to resolveDid', async () => {
-			const { createIdentityQuery } = await import('../../src/client/identity.js');
+			const { createIdentityQuery } = await import('../../src/client/identity/index.js');
 			const didIdentifier = 'did:plc:abc123def456';
 
 			createIdentityQuery(didIdentifier);
@@ -39,7 +39,7 @@ describe('client/identity', () => {
 		});
 
 		it('when identifier is a handle delegates to resolveHandle', async () => {
-			const { createIdentityQuery } = await import('../../src/client/identity.js');
+			const { createIdentityQuery } = await import('../../src/client/identity/index.js');
 			const handle = 'alice.example.com';
 
 			createIdentityQuery(handle);
@@ -55,7 +55,7 @@ describe('client/identity', () => {
 
 	describe('createResolveHandleQuery', () => {
 		it('returns query with correct queryKey for handle', async () => {
-			const { createResolveHandleQuery } = await import('../../src/client/identity.js');
+			const { createResolveHandleQuery } = await import('../../src/client/identity/index.js');
 			const handle = 'alice.example.com';
 
 			createResolveHandleQuery(handle);
@@ -71,7 +71,7 @@ describe('client/identity', () => {
 
 	describe('createResolveDidQuery', () => {
 		it('returns query with correct queryKey for did', async () => {
-			const { createResolveDidQuery } = await import('../../src/client/identity.js');
+			const { createResolveDidQuery } = await import('../../src/client/identity/index.js');
 			const did = 'did:plc:abc123def456';
 
 			createResolveDidQuery(did);
@@ -89,7 +89,7 @@ describe('client/identity', () => {
 describe('client/profile', () => {
 	describe('createProfileQuery', () => {
 		it('returns query with correct queryKey for did', async () => {
-			const { createProfileQuery } = await import('../../src/client/profile.js');
+			const { createProfileQuery } = await import('../../src/client/profile/index.js');
 			const did = 'did:plc:abc123def456';
 
 			createProfileQuery(did);
@@ -103,7 +103,7 @@ describe('client/profile', () => {
 		});
 
 		it('returns query with correct staleTime and gcTime', async () => {
-			const { createProfileQuery } = await import('../../src/client/profile.js');
+			const { createProfileQuery } = await import('../../src/client/profile/index.js');
 			const did = 'did:plc:abc123def456';
 
 			createProfileQuery(did);
