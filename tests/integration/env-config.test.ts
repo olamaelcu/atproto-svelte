@@ -7,7 +7,6 @@ describe('validateEnvConfig', () => {
 		oauthDomain: 'example.com',
 		oauthClientName: 'Test Client',
 		oauthScopes: 'atproto',
-		pdsUrl: 'https://bsky.social',
 		isDev: false
 	};
 
@@ -31,10 +30,6 @@ describe('validateEnvConfig', () => {
 			expect(() => validateEnvConfig(config)).toThrow(/oauthScopes.*required/);
 		});
 
-		it('should throw when pdsUrl is empty', () => {
-			const config = { ...baseConfig, pdsUrl: '' };
-			expect(() => validateEnvConfig(config)).toThrow(/pdsUrl.*required/);
-		});
 	});
 
 	describe('domain format validation', () => {
@@ -50,37 +45,6 @@ describe('validateEnvConfig', () => {
 		it('should reject invalid domain format', () => {
 			const config = { ...baseConfig, oauthDomain: 'not-a-domain' };
 			expect(() => validateEnvConfig(config)).toThrow(/not a valid domain/);
-		});
-	});
-
-	describe('pdsUrl validation', () => {
-		it('should accept valid pdsUrl', () => {
-			expect(() => validateEnvConfig(baseConfig)).not.toThrow();
-		});
-
-		it('should reject invalid URL format', () => {
-			const config = { ...baseConfig, pdsUrl: 'not-a-url' };
-			expect(() => validateEnvConfig(config)).toThrow(/not a valid URL/);
-		});
-
-		it('should reject non-https pdsUrl in production', () => {
-			const config = { ...baseConfig, pdsUrl: 'http://bsky.social' };
-			expect(() => validateEnvConfig(config)).toThrow(/https protocol/);
-		});
-
-		it('should accept http pdsUrl in dev mode', () => {
-			const config = { ...baseConfig, pdsUrl: 'http://localhost:3000', isDev: true };
-			expect(() => validateEnvConfig(config)).not.toThrow();
-		});
-
-		it('should reject localhost in production pdsUrl', () => {
-			const config = { ...baseConfig, pdsUrl: 'https://localhost:3000' };
-			expect(() => validateEnvConfig(config)).toThrow(/localhost/);
-		});
-
-		it('should reject 127.0.0.1 in production pdsUrl', () => {
-			const config = { ...baseConfig, pdsUrl: 'https://127.0.0.1:3000' };
-			expect(() => validateEnvConfig(config)).toThrow(/127\.0\.0\.1/);
 		});
 	});
 
@@ -115,7 +79,7 @@ describe('validateEnvConfig', () => {
 
 	describe('aggregate errors', () => {
 		it('should collect multiple errors', () => {
-			const config = { oauthDomain: '', oauthClientName: '', oauthScopes: '', pdsUrl: '' } as any;
+			const config = { oauthDomain: '', oauthClientName: '', oauthScopes: '' } as any;
 			try {
 				validateEnvConfig(config);
 				expect.fail('Should have thrown');
@@ -142,7 +106,6 @@ describe('loadEnvConfig', () => {
 		process.env.OAUTH_DOMAIN = 'test.example.com';
 		process.env.OAUTH_CLIENT_NAME = 'Test App';
 		process.env.OAUTH_SCOPES = 'atproto profile';
-		process.env.PDS_URL = 'https://bsky.social';
 		process.env.NODE_ENV = 'production';
 
 		const config = loadEnvConfig();
@@ -150,7 +113,6 @@ describe('loadEnvConfig', () => {
 		expect(config.oauthDomain).toBe('test.example.com');
 		expect(config.oauthClientName).toBe('Test App');
 		expect(config.oauthScopes).toBe('atproto profile');
-		expect(config.pdsUrl).toBe('https://bsky.social');
 		expect(config.isDev).toBe(false);
 	});
 
@@ -158,7 +120,6 @@ describe('loadEnvConfig', () => {
 		process.env.OAUTH_DOMAIN = 'test.example.com';
 		process.env.OAUTH_CLIENT_NAME = 'Test App';
 		process.env.OAUTH_SCOPES = 'atproto';
-		process.env.PDS_URL = 'https://bsky.social';
 		process.env.NODE_ENV = 'development';
 
 		const config = loadEnvConfig();
@@ -169,7 +130,6 @@ describe('loadEnvConfig', () => {
 		process.env.OAUTH_DOMAIN = 'test.example.com';
 		process.env.OAUTH_CLIENT_NAME = 'Test App';
 		process.env.OAUTH_SCOPES = 'atproto';
-		process.env.PDS_URL = 'https://bsky.social';
 		process.env.OAUTH_TOS_URI = 'https://example.com/tos';
 		process.env.OAUTH_POLICY_URI = 'https://example.com/policy';
 		process.env.OAUTH_JWK = 'dGVzdC1qd2s'; // valid base64
@@ -193,7 +153,6 @@ describe('loadEnvConfig', () => {
 		delete process.env.OAUTH_DOMAIN;
 		delete process.env.OAUTH_CLIENT_NAME;
 		delete process.env.OAUTH_SCOPES;
-		delete process.env.PDS_URL;
 
 		expect(() => loadEnvConfig()).toThrow();
 	});
@@ -202,7 +161,6 @@ describe('loadEnvConfig', () => {
 		process.env.OAUTH_DOMAIN = 'test.example.com';
 		process.env.OAUTH_CLIENT_NAME = 'Test App';
 		process.env.OAUTH_SCOPES = 'atproto';
-		process.env.PDS_URL = 'https://bsky.social';
 		process.env.DEV_PORT = 'not-a-number';
 
 		expect(() => loadEnvConfig()).toThrow(/DEV_PORT must be a number/);

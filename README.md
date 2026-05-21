@@ -42,7 +42,7 @@ const myUserStore: UserSessionStore = { getByTokenHash, create, update, delete, 
 
 // Create OAuth client
 const { client, restore } = await createOAuthClient(
-  { oauthDomain: 'example.com', oauthClientName: 'My App', oauthScopes: 'atproto transition:generic', pdsUrl: 'https://bsky.social', isDev: false },
+  { oauthDomain: 'example.com', oauthClientName: 'My App', oauthScopes: 'atproto transition:generic', isDev: false },
   { stateStore: myStateStore, sessionStore: mySessionStore }
 );
 
@@ -74,7 +74,7 @@ const sessionManager = createSessionManager({
 </QueryClientProvider>
 ```
 
-Access the resolved identity data through `identity.data?.did`, `identity.data?.handle`, `identity.data?.pdsUrl`, and `identity.data?.isVerified`.
+Access the resolved identity data through `identity.data?.did`, `identity.data?.handle`, and `identity.data?.isVerified`.
 
 ## Identity Resolution
 

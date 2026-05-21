@@ -16,9 +16,6 @@ export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
   if (!config.oauthScopes?.trim()) {
     errors.push('oauthScopes is required and must be a non-empty string');
   }
-  if (!config.pdsUrl?.trim()) {
-    errors.push('pdsUrl is required and must be a non-empty string');
-  }
 
   if (config.oauthDomain) {
     const domainRegex = /^(?!:\/\/)([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
@@ -27,35 +24,8 @@ export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
     }
   }
 
-  if (config.pdsUrl) {
-    let url: URL | null = null;
-    try {
-      url = new URL(config.pdsUrl);
-    } catch {
-      errors.push(`pdsUrl "${config.pdsUrl}" is not a valid URL`);
-    }
-
-    if (url && url.protocol !== 'https:') {
-      if (!config.isDev) {
-        errors.push('pdsUrl must use https protocol in production');
-      }
-    }
-  }
-
   if (!config.isDev) {
     const localhostPatterns = [/localhost$/i, /127\.0\.0\.1$/];
-
-    if (config.pdsUrl) {
-      try {
-        const url = new URL(config.pdsUrl);
-        const host = url.hostname;
-        if (localhostPatterns.some((pattern) => pattern.test(host))) {
-          errors.push('pdsUrl cannot contain localhost or 127.0.0.1 in production');
-        }
-      } catch (_) {
-        void _;
-      }
-    }
 
     if (config.oauthDomain) {
       if (localhostPatterns.some((pattern) => pattern.test(config.oauthDomain))) {
@@ -92,7 +62,6 @@ export function loadEnvConfig(overrides?: Partial<OAuthEnvironmentConfig>): OAut
     oauthDomain: process.env.OAUTH_DOMAIN ?? '',
     oauthClientName: process.env.OAUTH_CLIENT_NAME ?? '',
     oauthScopes: process.env.OAUTH_SCOPES ?? '',
-    pdsUrl: process.env.PDS_URL ?? '',
     isDev: process.env.NODE_ENV === 'development',
   };
 

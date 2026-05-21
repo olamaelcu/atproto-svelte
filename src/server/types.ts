@@ -8,7 +8,6 @@ export interface OAuthEnvironmentConfig {
   oauthJwk?: string | string[];
   oauthTosUri?: string;
   oauthPolicyUri?: string;
-  pdsUrl: string;
   isDev: boolean;
   devHost?: string;
   devPort?: number;

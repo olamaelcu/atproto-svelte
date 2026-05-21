@@ -138,7 +138,6 @@ interface UserSession {
 OAUTH_DOMAIN=https://yourapp.com        # Your domain for OAuth
 OAUTH_CLIENT_NAME=My App               # Display name
 OAUTH_SCOPES=atproto transition:generic
-PDS_URL=https://bsky.social            # PDS URL
 
 # Optional
 OAUTH_JWK=<base64>                     # Private key for signed requests
@@ -167,7 +166,6 @@ const { client, restore } = await createOAuthClient(
     oauthDomain: 'example.com',
     oauthClientName: 'My App',
     oauthScopes: 'atproto transition:generic',
-    pdsUrl: 'https://bsky.social',
     isDev: false,
     fallbackDid: 'did:plc:optional-fallback'
   },
