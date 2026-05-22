@@ -42,7 +42,7 @@ const myUserStore: UserSessionStore = { getByTokenHash, create, update, delete, 
 
 // Create OAuth client
 const { client, restore } = await createOAuthClient(
-  { oauthDomain: 'example.com', oauthClientName: 'My App', oauthScopes: 'atproto transition:generic', isDev: false },
+  { appDomain: 'example.com', oauthClientName: 'My App', oauthScopes: 'atproto transition:generic', isDev: false },
   { stateStore: myStateStore, sessionStore: mySessionStore }
 );
 

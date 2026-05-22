@@ -135,7 +135,7 @@ interface UserSession {
 
 ```bash
 # Required
-OAUTH_DOMAIN=https://yourapp.com        # Your domain for OAuth
+APP_DOMAIN=https://yourapp.com        # Your domain for OAuth
 OAUTH_CLIENT_NAME=My App               # Display name
 OAUTH_SCOPES=atproto transition:generic
 
@@ -163,7 +163,7 @@ import type { OAuthStateStore, OAuthSessionStore, ServiceUrlStore } from '@olama
 
 const { client, restore } = await createOAuthClient(
   {
-    oauthDomain: 'example.com',
+    appDomain: 'example.com',
     oauthClientName: 'My App',
     oauthScopes: 'atproto transition:generic',
     isDev: false,

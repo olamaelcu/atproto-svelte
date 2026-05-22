@@ -1,19 +1,36 @@
 import type { Agent } from '@atproto/api';
 import type { NodeOAuthClient, OAuthSession } from '@atproto/oauth-client-node';
 
+/**
+ * Configuration for the ATProto OAuth client.
+ * Defines how your app authenticates with the AT Protocol network.
+ */
 export interface OAuthEnvironmentConfig {
-  oauthDomain: string;
+  /** Your application's domain for OAuth callbacks (e.g. "example.com"). Used to construct redirect URIs and client metadata endpoints. */
+  appDomain: string;
+  /** Human-readable name for your OAuth client. Shown to users in authorization dialogs. */
   oauthClientName: string;
+  /** Space-separated list of OAuth scopes to request (e.g. "atproto transition:generic"). */
   oauthScopes: string;
+  /** Base64-encoded RSA/ECDSA private key for confidential clients. Required only for private_key_jwt authentication. */
   oauthJwk?: string | string[];
+  /** URL to your Terms of Service page. Displayed in authorization dialogs if set. */
   oauthTosUri?: string;
+  /** URL to your Privacy Policy page. Displayed in authorization dialogs if set. */
   oauthPolicyUri?: string;
+  /** Set to true when running in development mode. Enables localhost callbacks and dev-specific behavior. */
   isDev: boolean;
+  /** Override hostname for development callback URLs. Defaults to localhost. */
   devHost?: string;
+  /** Override port for development callback URLs. Defaults to 3000. */
   devPort?: number;
+  /** Fallback DID used when session resolution fails. Typically your own PDS service DID. */
   fallbackDid?: string;
+  /** Fallback domain for handle resolution. Used when a handle cannot be resolved on-chain. */
   fallbackDomain?: string;
+  /** Override the PLC directory URL for DID resolution. Defaults to plc.directory. */
   plcDirectoryUrl?: string;
+  /** Override the public ATP API URL. Used to specify a custom PDS endpoint. */
   publicApiUrl?: string;
 }
 

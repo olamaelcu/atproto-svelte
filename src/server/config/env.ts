@@ -7,8 +7,8 @@ import type { OAuthEnvironmentConfig } from '../types.js';
 export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
   const errors: string[] = [];
 
-  if (!config.oauthDomain?.trim()) {
-    errors.push('oauthDomain is required and must be a non-empty string');
+  if (!config.appDomain?.trim()) {
+    errors.push('appDomain is required and must be a non-empty string');
   }
   if (!config.oauthClientName?.trim()) {
     errors.push('oauthClientName is required and must be a non-empty string');
@@ -17,19 +17,19 @@ export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
     errors.push('oauthScopes is required and must be a non-empty string');
   }
 
-  if (config.oauthDomain) {
+  if (config.appDomain) {
     const domainRegex = /^(?!:\/\/)([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
-    if (!domainRegex.test(config.oauthDomain)) {
-      errors.push(`oauthDomain "${config.oauthDomain}" is not a valid domain format`);
+    if (!domainRegex.test(config.appDomain)) {
+      errors.push(`appDomain "${config.appDomain}" is not a valid domain format`);
     }
   }
 
   if (!config.isDev) {
     const localhostPatterns = [/localhost$/i, /127\.0\.0\.1$/];
 
-    if (config.oauthDomain) {
-      if (localhostPatterns.some((pattern) => pattern.test(config.oauthDomain))) {
-        errors.push('oauthDomain cannot contain localhost or 127.0.0.1 in production');
+    if (config.appDomain) {
+      if (localhostPatterns.some((pattern) => pattern.test(config.appDomain))) {
+        errors.push('appDomain cannot contain localhost or 127.0.0.1 in production');
       }
     }
   }
@@ -59,7 +59,7 @@ export function validateEnvConfig(config: OAuthEnvironmentConfig): void {
 
 export function loadEnvConfig(overrides?: Partial<OAuthEnvironmentConfig>): OAuthEnvironmentConfig {
   const config: OAuthEnvironmentConfig = {
-    oauthDomain: process.env.OAUTH_DOMAIN ?? '',
+    appDomain: process.env.APP_DOMAIN ?? '',
     oauthClientName: process.env.OAUTH_CLIENT_NAME ?? '',
     oauthScopes: process.env.OAUTH_SCOPES ?? '',
     isDev: process.env.NODE_ENV === 'development',

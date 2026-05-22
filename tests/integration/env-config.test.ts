@@ -4,7 +4,7 @@ import type { OAuthEnvironmentConfig } from '../../src/server/types.js';
 
 describe('validateEnvConfig', () => {
 	const baseConfig: OAuthEnvironmentConfig = {
-		oauthDomain: 'example.com',
+		appDomain: 'example.com',
 		oauthClientName: 'Test Client',
 		oauthScopes: 'atproto',
 		isDev: false
@@ -15,9 +15,9 @@ describe('validateEnvConfig', () => {
 			expect(() => validateEnvConfig(baseConfig)).not.toThrow();
 		});
 
-		it('should throw when oauthDomain is empty', () => {
-			const config = { ...baseConfig, oauthDomain: '' };
-			expect(() => validateEnvConfig(config)).toThrow(/oauthDomain.*required/);
+		it('should throw when appDomain is empty', () => {
+			const config = { ...baseConfig, appDomain: '' };
+			expect(() => validateEnvConfig(config)).toThrow(/appDomain.*required/);
 		});
 
 		it('should throw when oauthClientName is empty', () => {
@@ -38,24 +38,24 @@ describe('validateEnvConfig', () => {
 		});
 
 		it('should reject domain with protocol', () => {
-			const config = { ...baseConfig, oauthDomain: 'https://example.com' };
+			const config = { ...baseConfig, appDomain: 'https://example.com' };
 			expect(() => validateEnvConfig(config)).toThrow(/not a valid domain/);
 		});
 
 		it('should reject invalid domain format', () => {
-			const config = { ...baseConfig, oauthDomain: 'not-a-domain' };
+			const config = { ...baseConfig, appDomain: 'not-a-domain' };
 			expect(() => validateEnvConfig(config)).toThrow(/not a valid domain/);
 		});
 	});
 
 	describe('production mode validation', () => {
-		it('should reject localhost oauthDomain in production', () => {
-			const config = { ...baseConfig, oauthDomain: 'localhost' };
+		it('should reject localhost appDomain in production', () => {
+			const config = { ...baseConfig, appDomain: 'localhost' };
 			expect(() => validateEnvConfig(config)).toThrow(/localhost/);
 		});
 
-		it('should reject 127.0.0.1 oauthDomain in production', () => {
-			const config = { ...baseConfig, oauthDomain: '127.0.0.1' };
+		it('should reject 127.0.0.1 appDomain in production', () => {
+			const config = { ...baseConfig, appDomain: '127.0.0.1' };
 			expect(() => validateEnvConfig(config)).toThrow(/127\.0\.0\.1/);
 		});
 
@@ -79,7 +79,7 @@ describe('validateEnvConfig', () => {
 
 	describe('aggregate errors', () => {
 		it('should collect multiple errors', () => {
-			const config = { oauthDomain: '', oauthClientName: '', oauthScopes: '' } as any;
+			const config = { appDomain: '', oauthClientName: '', oauthScopes: '' } as any;
 			try {
 				validateEnvConfig(config);
 				expect.fail('Should have thrown');
@@ -103,21 +103,21 @@ describe('loadEnvConfig', () => {
 	});
 
 	it('should load config from environment variables', () => {
-		process.env.OAUTH_DOMAIN = 'test.example.com';
+		process.env.APP_DOMAIN = 'test.example.com';
 		process.env.OAUTH_CLIENT_NAME = 'Test App';
 		process.env.OAUTH_SCOPES = 'atproto profile';
 		process.env.NODE_ENV = 'production';
 
 		const config = loadEnvConfig();
 
-		expect(config.oauthDomain).toBe('test.example.com');
+		expect(config.appDomain).toBe('test.example.com');
 		expect(config.oauthClientName).toBe('Test App');
 		expect(config.oauthScopes).toBe('atproto profile');
 		expect(config.isDev).toBe(false);
 	});
 
 	it('should set isDev based on NODE_ENV', () => {
-		process.env.OAUTH_DOMAIN = 'test.example.com';
+		process.env.APP_DOMAIN = 'test.example.com';
 		process.env.OAUTH_CLIENT_NAME = 'Test App';
 		process.env.OAUTH_SCOPES = 'atproto';
 		process.env.NODE_ENV = 'development';
@@ -127,7 +127,7 @@ describe('loadEnvConfig', () => {
 	});
 
 	it('should load optional environment variables', () => {
-		process.env.OAUTH_DOMAIN = 'test.example.com';
+		process.env.APP_DOMAIN = 'test.example.com';
 		process.env.OAUTH_CLIENT_NAME = 'Test App';
 		process.env.OAUTH_SCOPES = 'atproto';
 		process.env.OAUTH_TOS_URI = 'https://example.com/tos';
@@ -150,7 +150,7 @@ describe('loadEnvConfig', () => {
 	});
 
 	it('should throw when required env vars are missing', () => {
-		delete process.env.OAUTH_DOMAIN;
+		delete process.env.APP_DOMAIN;
 		delete process.env.OAUTH_CLIENT_NAME;
 		delete process.env.OAUTH_SCOPES;
 
@@ -158,7 +158,7 @@ describe('loadEnvConfig', () => {
 	});
 
 	it('should throw when DEV_PORT is not a number', () => {
-		process.env.OAUTH_DOMAIN = 'test.example.com';
+		process.env.APP_DOMAIN = 'test.example.com';
 		process.env.OAUTH_CLIENT_NAME = 'Test App';
 		process.env.OAUTH_SCOPES = 'atproto';
 		process.env.DEV_PORT = 'not-a-number';

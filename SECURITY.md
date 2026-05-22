@@ -69,7 +69,7 @@ Use `validateEnvConfig()` to enforce production safety checks at startup. Requir
 ### Required
 
 ```bash
-OAUTH_DOMAIN=https://yourapp.com        # Your domain for OAuth (e.g., bsky.app)
+APP_DOMAIN=https://yourapp.com        # Your domain for OAuth (e.g., bsky.app)
 OAUTH_CLIENT_NAME=My App               # Display name for the OAuth client
 OAUTH_SCOPES=atproto transition:generic # OAuth scopes
 ```
@@ -108,7 +108,7 @@ const sessionManager = createSessionManager({
 ### Production Safety
 
 When `isDev=false`, the validator rejects:
-- localhost or 127.0.0.1 in `OAUTH_DOMAIN`
+- localhost or 127.0.0.1 in `APP_DOMAIN`
 - Non-HTTPS endpoints (unless `NODE_ENV=development`)
 - Missing required variables
 

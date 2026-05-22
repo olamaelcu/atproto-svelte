@@ -86,7 +86,7 @@ export async function createOAuthClient(
   const keys = isConfidential ? await loadJwk(config) : undefined;
 
   const devCallbackUrl = getDevUrl(config);
-  const rootUrl = config.isDev ? devCallbackUrl : `https://${config.oauthDomain}`;
+  const rootUrl = config.isDev ? devCallbackUrl : `https://${config.appDomain}`;
 
   validateNonDevUrls(config, rootUrl, devCallbackUrl);
 
