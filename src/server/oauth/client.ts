@@ -88,7 +88,9 @@ export async function createOAuthClient(
   const devCallbackUrl = getDevUrl(config);
   const rootUrl = config.isDev ? devCallbackUrl : `https://${config.appDomain}`;
 
-  validateNonDevUrls(config, rootUrl, devCallbackUrl);
+  if (config.isDev) {
+    validateNonDevUrls(config, rootUrl, devCallbackUrl);
+  }
 
   const clientMetadata = config.isDev
     ? atprotoLoopbackClientMetadata(
