@@ -46,7 +46,10 @@ export class LibsqlUserSessionStore implements UserSessionStore {
 		}
 
 		const data = row.data as string;
-		return JSON.parse(data) as UserSession;
+		const session = JSON.parse(data) as UserSession;
+		session.createdAt = new Date(session.createdAt);
+		session.expiresAt = new Date(session.expiresAt);
+		return session;
 	}
 
 	async create(session: UserSession): Promise<void> {
