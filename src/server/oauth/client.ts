@@ -74,6 +74,9 @@ export async function loadJwk(config: OAuthEnvironmentConfig): Promise<Keyset | 
   const keys = await Promise.all(parsed.map((jwk) => JoseKey.fromJWK(jwk)));
   for (const key of keys) {
     Object.defineProperty(key.jwk, 'use', { value: 'sig', enumerable: true, writable: false });
+    if (!key.jwk.key_ops) {
+      Object.defineProperty(key.jwk, 'key_ops', { value: ['sign'], enumerable: true, writable: false });
+    }
   }
   return new Keyset(keys, ['ES256']);
 }
