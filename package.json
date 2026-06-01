@@ -1,6 +1,6 @@
 {
   "name": "@olamaelcu/atproto-svelte",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "type": "module",
   "sideEffects": false,
   "description": "ATProto OAuth client and identity resolution for SvelteKit with Tanstack Query caching",
