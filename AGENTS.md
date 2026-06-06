@@ -30,13 +30,16 @@ ATProto OAuth client and identity resolution library for SvelteKit with Tanstack
 
 ## Build/Test Commands
 
+This project uses **Yarn 4** (Berry, `nodeLinker: node-modules`). Always use `yarn`
+commands, not `npm`. Do not regenerate `yarn.lock` from npm.
+
 ```bash
-npm run build              # production build with tsup
-npm run test                # all tests
-npm run test:unit           # unit tests only
-npm run test:integration    # integration tests
-npm run typecheck           # TypeScript checking
-npm run lint                # ESLint
+yarn build                 # production build with tsup
+yarn test                  # all tests
+yarn test:unit             # unit tests only
+yarn test:integration      # integration tests
+yarn typecheck             # TypeScript checking
+yarn lint                  # ESLint
 ```
 
 ## TokenCodec

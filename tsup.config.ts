@@ -10,7 +10,7 @@ export default defineConfig({
   format: ['esm'],
   dts: true,
   splitting: true,
-  sourcemap: true,
+  sourcemap: "inline",
   clean: true,
   external: [
     '@sveltejs/kit',

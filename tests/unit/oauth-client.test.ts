@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
+import crypto from 'node:crypto';
 import { Keyset } from '@atproto/jwk';
-import { loadJwk, decodeBase64IfNeeded } from '../../src/server/oauth/client.js';
+import { loadJwk, decodeBase64IfNeeded, createOAuthClient } from '../../src/server/oauth/client.js';
+import type { OAuthStateStore, OAuthSessionStore } from '../../src/server/types.js';
 
 function getDevUrl(config: { devHost?: string; devPort?: number }): string {
   const host = config.devHost ?? '127.0.0.1';
@@ -148,5 +150,77 @@ describe('loadJwk', () => {
     expect(result).toBeInstanceOf(Keyset);
     expect(result!.keys).toHaveLength(1);
     expect(result!.keys[0].jwk.kty).toBe('EC');
+  });
+
+  it('produces a sign-usage key for a private EC P-256 JWK (regression: do not re-add use:"sig")', async () => {
+    const { privateKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'P-256' });
+    const privateJwk = privateKey.export({ format: 'jwk' }) as { kty: string; crv: string; x: string; y: string; d: string };
+    (privateJwk as { kid?: string }).kid = 'test-key-1';
+    const encoded = Buffer.from(JSON.stringify(privateJwk)).toString('base64');
+
+    const result = await loadJwk({ oauthJwk: encoded });
+
+    expect(result).toBeInstanceOf(Keyset);
+    const signKeys = Array.from(result!.list({ usage: 'sign' }));
+    expect(signKeys).toHaveLength(1);
+    const [signingKey] = signKeys;
+    expect(signingKey.kid).toBe('test-key-1');
+    expect((signingKey.jwk as { use?: string }).use).toBeUndefined();
+    expect(signingKey.algorithms).toContain('ES256');
+  });
+});
+
+function createInMemoryStateStore(): OAuthStateStore {
+  const map = new Map<string, Uint8Array>();
+  return {
+    async get(key) {
+      return map.get(key);
+    },
+    async set(key, value) {
+      map.set(key, value);
+    },
+    async del(key) {
+      map.delete(key);
+    },
+  };
+}
+
+function createInMemorySessionStore(): OAuthSessionStore {
+  const map = new Map<string, unknown>();
+  return {
+    async get(key) {
+      return map.get(key) as never;
+    },
+    async set(key, value) {
+      map.set(key, value);
+    },
+    async del(key) {
+      map.delete(key);
+    },
+  };
+}
+
+describe('createOAuthClient (private_key_jwt)', () => {
+  it('constructs without throwing the "active signing key with a kid" error for a private EC P-256 JWK', async () => {
+    const { privateKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'P-256' });
+    const privateJwk = privateKey.export({ format: 'jwk' }) as { kty: string; crv: string; x: string; y: string; d: string };
+    (privateJwk as { kid?: string }).kid = 'test-key-1';
+    const encoded = Buffer.from(JSON.stringify(privateJwk)).toString('base64');
+
+    await expect(
+      createOAuthClient(
+        {
+          appDomain: 'example.com',
+          oauthClientName: 'Test Client',
+          oauthScopes: 'atproto',
+          oauthJwk: encoded,
+          isDev: false,
+        },
+        {
+          stateStore: createInMemoryStateStore(),
+          sessionStore: createInMemorySessionStore(),
+        },
+      ),
+    ).resolves.toBeDefined();
   });
 });
