@@ -123,7 +123,7 @@ export async function createOAuthClient(
 
   const clientMetadata = config.isDev
     ? atprotoLoopbackClientMetadata(
-        `${devCallbackUrl}?${new URLSearchParams([
+        `http://localhost?${new URLSearchParams([
           ["redirect_uri", `${devCallbackUrl}/oauth/callback`],
           ["scope", config.oauthScopes],
         ])}`,
