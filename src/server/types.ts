@@ -18,6 +18,8 @@ export interface OAuthEnvironmentConfig {
   oauthTosUri?: string;
   /** URL to your Privacy Policy page. Displayed in authorization dialogs if set. */
   oauthPolicyUri?: string;
+  /** URL to your logo for display in authorization dialogs. */
+  logoUri?: string;
   /** Set to true when running in development mode. Enables localhost callbacks and dev-specific behavior. */
   isDev: boolean;
   /** Override hostname for development callback URLs. Defaults to localhost. */

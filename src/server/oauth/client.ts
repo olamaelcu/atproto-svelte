@@ -172,6 +172,7 @@ export async function createOAuthClient(
           : undefined,
         tos_uri: config.oauthTosUri,
         policy_uri: config.oauthPolicyUri,
+        logo_uri: config.logoUri,
       };
 
   const oauthClient = new NodeOAuthClient({
