@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import crypto from 'node:crypto';
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { Keyset } from '@atproto/jwk';
 import { loadJwk, decodeBase64IfNeeded, createOAuthClient } from '../../src/server/oauth/client.js';
 import type { OAuthStateStore, OAuthSessionStore } from '../../src/server/types.js';
@@ -20,6 +21,27 @@ function validateNonDevUrls(config: { isDev: boolean }, rootUrl: string, devCall
       );
     }
   }
+}
+
+/** Bind a throwaway HTTP server on 127.0.0.1 and report the port it got. */
+async function startServer(
+  handler: (req: IncomingMessage, res: ServerResponse) => void,
+): Promise<{ port: number; close: () => Promise<void> }> {
+  const server: Server = createServer(handler);
+  const listening = Promise.withResolvers<void>();
+  server.listen(0, '127.0.0.1', listening.resolve);
+  await listening.promise;
+
+  const address = server.address();
+  const port = typeof address === 'object' && address ? address.port : 0;
+  return {
+    port,
+    close: () => {
+      const closed = Promise.withResolvers<void>();
+      server.close(() => closed.resolve());
+      return closed.promise;
+    },
+  };
 }
 
 describe('decodeBase64IfNeeded', () => {
@@ -222,5 +244,88 @@ describe('createOAuthClient (private_key_jwt)', () => {
         },
       ),
     ).resolves.toBeDefined();
+  });
+});
+describe('createOAuthClient (identity resolution)', () => {
+  /**
+   * A PDS reachable only through a local PLC has to be resolvable by the OAuth
+   * client itself: `authorize()` derives the authorization URL from the DID
+   * document, so `plcDirectoryUrl` must reach the client, not just the exported
+   * `resolveDid` helpers.
+   */
+  it('resolves the DID document from the configured PLC directory', async () => {
+    const did = 'did:plc:l22esprzdf2bljrureroam4a';
+    const plcRequests: string[] = [];
+
+    // The PDS is bound first: the document the PLC serves has to name the port
+    // the authorization server actually listens on.
+    const pds = await startServer((_req, res) => {
+      res.setHeader('content-type', 'application/json');
+      res.end(
+        JSON.stringify({
+          issuer: `http://127.0.0.1:${pds.port}`,
+          authorization_endpoint: `http://127.0.0.1:${pds.port}/oauth/authorize`,
+          token_endpoint: `http://127.0.0.1:${pds.port}/oauth/token`,
+          response_types_supported: ['code'],
+          grant_types_supported: ['authorization_code', 'refresh_token'],
+          scopes_supported: ['atproto'],
+          dpop_signing_alg_values_supported: ['ES256'],
+          code_challenge_methods_supported: ['S256'],
+          token_endpoint_auth_methods_supported: ['none'],
+        }),
+      );
+    });
+
+    const plc = await startServer((req, res) => {
+      plcRequests.push(req.url ?? '');
+      res.setHeader('content-type', 'application/did+ld+json');
+      res.end(
+        JSON.stringify({
+          id: did,
+          alsoKnownAs: ['at://alice.test'],
+          service: [
+            {
+              id: '#atproto_pds',
+              type: 'AtprotoPersonalDataServer',
+              serviceEndpoint: `http://127.0.0.1:${pds.port}`,
+            },
+          ],
+        }),
+      );
+    });
+
+    try {
+      const { client } = await createOAuthClient(
+        {
+          appDomain: 'example.com',
+          oauthClientName: 'Test Client',
+          oauthScopes: 'atproto',
+          isDev: true,
+          devPort: 5180,
+          plcDirectoryUrl: `http://127.0.0.1:${plc.port}`,
+          allowHttp: true,
+        },
+        {
+          stateStore: createInMemoryStateStore(),
+          sessionStore: createInMemorySessionStore(),
+        },
+      );
+
+      // `authorize()` only accepts a handle, so the DID path is the resolver
+      // the client exposes — the very one `authorize()` uses once a handle has
+      // been mapped to a DID.
+      const identity = await client.identityResolver.resolve(did);
+
+      // The document came from the configured directory, not plc.directory.
+      // The path is percent-encoded (`did%3Aplc%3A…`), so decode before matching.
+      expect(decodeURIComponent(plcRequests.join(' '))).toContain(did);
+      // ... and the issuer it named is what the client will authorize against.
+      expect(identity.didDoc.service?.[0]?.serviceEndpoint).toBe(
+        `http://127.0.0.1:${pds.port}`,
+      );
+    } finally {
+      await plc.close();
+      await pds.close();
+    }
   });
 });

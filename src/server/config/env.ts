@@ -99,6 +99,9 @@ export function loadEnvConfig(
   if (process.env.PLC_DIRECTORY_URL) {
     config.plcDirectoryUrl = process.env.PLC_DIRECTORY_URL;
   }
+  if (process.env.ALLOW_HTTP) {
+    config.allowHttp = process.env.ALLOW_HTTP === "true";
+  }
   if (process.env.PUBLIC_API_URL) {
     config.publicApiUrl = process.env.PUBLIC_API_URL;
   }

@@ -32,6 +32,16 @@ export interface OAuthEnvironmentConfig {
   fallbackDomain?: string;
   /** Override the PLC directory URL for DID resolution. Defaults to plc.directory. */
   plcDirectoryUrl?: string;
+  /**
+   * Allow OAuth servers and `did:web` documents to be reached over plain HTTP.
+   *
+   * Identity resolution already accepts an `http:` PLC directory, so this is
+   * only for a local stack whose authorization server is not behind TLS.
+   * Never enable it in a deployment.
+   *
+   * @default false
+   */
+  allowHttp?: boolean;
   /** Override the public ATP API URL. Used to specify a custom PDS endpoint. */
   publicApiUrl?: string;
 }

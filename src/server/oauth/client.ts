@@ -180,6 +180,12 @@ export async function createOAuthClient(
     sessionStore: createSessionStoreAdapter(options.sessionStore),
     clientMetadata,
     keyset: keys as ConstructorParameters<typeof NodeOAuthClient>[0]["keyset"],
+    // Identity resolution for `authorize()` was hard-wired to public DNS and
+    // plc.directory, so a PDS reachable only through a local PLC could never
+    // sign in. These are the options `NodeOAuthClient` already accepts (its
+    // options extend `CreateIdentityResolverOptions`).
+    ...(config.plcDirectoryUrl && { plcDirectoryUrl: config.plcDirectoryUrl }),
+    ...(config.allowHttp && { allowHttp: true }),
   });
 
   return {
